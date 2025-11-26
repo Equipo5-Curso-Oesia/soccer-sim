@@ -33,13 +33,28 @@ int main(int argc, char *argv[])
     }
 
     MinimalSocket::Address other_recipient_udp = MinimalSocket::Address{"127.0.0.1", 6000};
-    cout << "(init " + team_name + "(version 19))";
+    cout << "(init " + team_name + " (version 19))" << endl;
 
-    udp_socket.sendTo("(init " + team_name + "(version 19))", other_recipient_udp);
+    udp_socket.sendTo("(init " + team_name + " (version 19))", other_recipient_udp);
     cout << "Init Message sent" << endl;
 
     std::size_t message_max_size = 1000;
     cout << "Waiting for a message" << endl;
     auto received_message = udp_socket.receive(message_max_size);
     std::string received_message_content = received_message->received_message;
+
+    MinimalSocket::Address other_sender_udp = received_message->sender;
+    MinimalSocket::Address server_udp = MinimalSocket::Address{"127.0.0.1", other_sender_udp.getPort()};
+
+    udp_socket.sendTo("(move -10 0)", server_udp);
+    
+    received_message = udp_socket.receive(message_max_size);
+    received_message_content = received_message->received_message;
+    
+    cout << "Listo para jugar" << endl;
+
+    while(true){
+        sleep(1);
+    }
+    
 }
