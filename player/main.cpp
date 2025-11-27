@@ -19,13 +19,12 @@ struct Player
         numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
     }
 
-  };
-
-ostream &operator<<(ostream &os, const Player &p)
-{
-    os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
-    return os;
-}
+    friend ostream &operator<<(ostream &os, const Player &p)
+    {
+        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
+        return os;
+    }
+};
 
 // main with two args
 int main(int argc, char *argv[])
