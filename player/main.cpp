@@ -4,6 +4,29 @@ using namespace std;
 
 #include <MinimalSocket/udp/UdpSocket.h>
 
+struct Player
+{
+    int numeroJugador;
+    char lado;
+
+    void parseInit(string msg)
+    {   
+        // ejemplo msg: (init l 2 before_kick_off)
+        size_t pos = msg.find(' ');
+        lado = msg[pos + 1];
+        size_t pos_inicio_numero = msg.find(' ', pos + 1);
+        size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
+        numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
+    }
+
+  };
+
+ostream &operator<<(ostream &os, const Player &p)
+{
+    os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
+    return os;
+}
+
 // main with two args
 int main(int argc, char *argv[])
 {
@@ -42,6 +65,12 @@ int main(int argc, char *argv[])
     cout << "Waiting for a message" << endl;
     auto received_message = udp_socket.receive(message_max_size);
     std::string received_message_content = received_message->received_message;
+
+    //cout << "Message received: " << received_message_content << endl;
+
+    Player player;
+    player.parseInit(received_message_content);
+    cout << player << endl;
 
     MinimalSocket::Address other_sender_udp = received_message->sender;
     MinimalSocket::Address server_udp = MinimalSocket::Address{"127.0.0.1", other_sender_udp.getPort()};
