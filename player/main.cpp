@@ -30,9 +30,9 @@ struct Player
 int main(int argc, char *argv[])
 {
     // check if the number of arguments is correct
-    if (argc != 3)
+    if (argc != 4)
     {
-        cout << "Usage: " << argv[0] << " <team-name> <this-port>" << endl;
+        cout << "Usage: " << argv[0] << " <team-name> <this-port> <is-goalie (false/true)>" << endl;
         return 1;
     }
 
@@ -57,7 +57,13 @@ int main(int argc, char *argv[])
     MinimalSocket::Address other_recipient_udp = MinimalSocket::Address{"127.0.0.1", 6000};
     cout << "(init " + team_name + " (version 19))" << endl;
 
-    udp_socket.sendTo("(init " + team_name + " (version 19))", other_recipient_udp);
+    bool is_goalie = (string(argv[3]) == "true");
+    if(!is_goalie){
+        udp_socket.sendTo("(init " + team_name + " (version 19))", other_recipient_udp);
+    }
+    else{
+        udp_socket.sendTo("(init " + team_name + " (version 19) (goalie))", other_recipient_udp);
+    }
     cout << "Init Message sent" << endl;
 
     std::size_t message_max_size = 1000;
