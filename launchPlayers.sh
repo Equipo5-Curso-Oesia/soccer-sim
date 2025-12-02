@@ -21,4 +21,3 @@ done
 
 # Goalkeeper Player
 gnome-terminal -- bash -c "$COMAND 55560 true" &
-#rtdrdrte
