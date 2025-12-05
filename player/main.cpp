@@ -1,29 +1,13 @@
 #include <iostream>
+#include <string>
+#include <sstream>
+#include <cmath>
 
 using namespace std;
 
 #include <MinimalSocket/udp/UdpSocket.h>
 #include <unistd.h>
 
-/*
-/////////////////////////////////////////////////////////////////////////////////
-
-Importante:
-Ejemplode como trabajar con git.
-
-1º Nunca se trabaja sobre la rama main (master).
-2º Se crea una rama nueva a partir de main (git branch <nombre de la rama nueva>).
-3º Se cambia a la nueva rama (git checkout <nombre de la rama nueva>).
-    (git checkout -b <nombre de la rama nueva>). Crea la rama y se cambia a ella automatiucamente.
-3º En ella se desarrolla la funcionalidad nueva, una unica.
-4º Cuando se termina, se hace un commit con un mensaje claro (git commit -a -m "mensaje claro").
-5º Se sube la rama al repositorio remoto (git push --set-upstream origin <nombre de la rama nueva>). Es recomendable que periodicamente se haga push mientras se trabaja para evitar perdida de trabajo y permitir que el resto pueda ver que haces.
-6º Si la rama ya está en el repositorio remoto, se hace (git push origin <nombre de la rama nueva>) o (git push).
-7º Se abre un Pull Request en github para hacer el merge con la rama principal. Esto se hace con todo el equipo, nunca de forma individual. Se hace desde la web de GitHub
-7º bis Las ramas se pueden dejar colgando en el repositorio remoto si contienen por ejemplo pruebas de concepto que no se van a integrar en la rama principal como tal.
-
-/////////////////////////////////////////////////////////////////////////////////
-*/
 // main with three args
 
 struct Player
@@ -40,6 +24,42 @@ struct Player
         size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
         numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
     }
+	
+	bool buscarBalon(const string &message, double &angulo_balon, double &distancia_balon)
+	{
+		//Ejemplo de mensaje: "(see 0 ((b) 10.0 30.0) ... )"
+		size_t ball_pos = message.find("(b)");
+		if (ball_pos == string::npos) {
+			return false;
+		}
+		
+		size_t start = ball_pos + 3;
+		size_t end = message.find(')', start);
+		string ball_info = message.substr(start, end - start);
+		size_t space_pos = ball_info.find(' ', ball_info.find(' ') + 1);
+		if (space_pos == string::npos) {
+			return false;
+		}
+		
+		distancia_balon = stod(ball_info.substr(0, space_pos));
+		angulo_balon = stod(ball_info.substr(space_pos + 1));
+		return true;
+	}
+	
+	void correrHaciaPosicion(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, double angulo)
+	{
+		if (abs(angulo) > 10) {
+			udp_socket.sendTo("(turn " + to_string(angulo) + ")", server_udp);
+		} else {
+			udp_socket.sendTo("(dash 100)", server_udp);
+		}
+	}
+	
+	void patearHaciaPorteria(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, char lado)
+	{
+		double kick_direction = (lado == 'l') ? 0 : 180;  
+		udp_socket.sendTo("(kick 100 " + to_string(kick_direction) + ")", server_udp);
+	}
 
     friend ostream &operator<<(ostream &os, const Player &p)
     {
@@ -47,6 +67,7 @@ struct Player
         return os;
     }
 };
+
 
 // main with two args
 int main(int argc, char *argv[])
@@ -128,7 +149,22 @@ int main(int argc, char *argv[])
     cout << "Listo para jugar" << endl;
 
     while(true){
-        sleep(1);
+        received_message = udp_socket.receive(message_max_size);
+        received_message_content = received_message->received_message;    
+        
+        double angulo_balon, distancia_balon;
+        if (player.buscarBalon(received_message_content, angulo_balon, distancia_balon))
+		{
+            if (distancia_balon < 0.5)
+			{
+                player.patearHaciaPorteria(udp_socket, server_udp, player.lado);
+            } 
+			else if(!is_goalie)
+			{
+				player.correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+            }
+        }
     }
+
     
 }
