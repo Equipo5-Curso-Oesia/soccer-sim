@@ -5,8 +5,11 @@ using namespace std;
 #include <MinimalSocket/udp/UdpSocket.h>
 #include <unistd.h>
 #include <functional>
-//#include <string>
-//#include <tuple>
+
+
+
+#include <chrono>
+
 
 #include <player.hpp>
 #include <utils.hpp>
@@ -32,7 +35,7 @@ Ejemplode como trabajar con git.
 */
 // main with three args
 
-/* struct Player
+struct Players
 {
     int numeroJugador;
     char lado;
@@ -49,22 +52,22 @@ Ejemplode como trabajar con git.
 
     friend ostream &operator<<(ostream &os, const Player &p)
     {
-        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
+        //os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
         return os;
     }
-}; */
+};
 
 // main with two args
 int main(int argc, char *argv[])
 {
     //    tuple<string, int, bool> t [team_name, port, is_goalie];
     string team_name;
-    int port;
+    MinimalSocket::Port send_port;
     bool is_goalie;
     tuple<string, int, bool> x;
     try {
         x = parseArgs(argc-1, &argv[1]);
-        tie(team_name, port, is_goalie) = x;
+        tie(team_name, send_port, is_goalie) = x;
     } catch (const invalid_argument &e) {
         cerr << e.what() << endl;
         return -1;
@@ -73,58 +76,52 @@ int main(int argc, char *argv[])
     cout << "Arguments parsed successfully" << endl;
     cout << x << endl;
 
-    while(true){
-        sleep(1);
-    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    string init_message_content = "(init " + team_name + " (version 19)";
+    if(is_goalie)
+        init_message_content += " (goalie)";
+    init_message_content += ")";
+    cout << init_message_content << endl;
 
-/* 
-    // check if the number of arguments is correct
-    if (argc != 4)
-    {
-        cout << "Usage: " << argv[0] << " <team-name> <this-port> <is-goalie (false/true)>" << endl;
-        return 1;
-    }
-
-    // get the team name and the port
-    string team_name = argv[1];
-    MinimalSocket::Port this_socket_port = std::stoi(argv[2]);
 
     cout << "Creating a UDP socket" << endl;
-
-    MinimalSocket::udp::Udp<true> udp_socket(port, MinimalSocket::AddressFamily::IP_V6);
-
+    MinimalSocket::udp::Udp<true> udp_socket(send_port, MinimalSocket::AddressFamily::IP_V6);
     cout << "Socket created" << endl;
 
-    bool success = udp_socket.open();
-
-    if (!success)
+    if (!udp_socket.open())
     {
-        cout << "Error opening socket" << endl;
+        cerr << "Error opening socket" << endl;
         return 1;
     }
 
     MinimalSocket::Address other_recipient_udp = MinimalSocket::Address{"127.0.0.1", 6000};
-    cout << "(init " + team_name + " (version 19))" << endl;
-
-    bool is_goalie = (string(argv[3]) == "true");
-    if(!is_goalie){
-        udp_socket.sendTo("(init " + team_name + " (version 19))", other_recipient_udp);
-    }
-    else{
-        udp_socket.sendTo("(init " + team_name + " (version 19) (goalie))", other_recipient_udp);
-    }
+    udp_socket.sendTo(init_message_content, other_recipient_udp);
     cout << "Init Message sent" << endl;
 
-    std::size_t message_max_size = 1000;
+
+    std::size_t message_max_size = 4096;
     cout << "Waiting for a message" << endl;
     auto received_message = udp_socket.receive(message_max_size);
     std::string received_message_content = received_message->received_message;
 
-    //cout << "Message received: " << received_message_content << endl;
+    cout << "Message received: " << received_message_content << endl;
 
-    Player player;
-    player.parseInit(received_message_content);
+    MinimalSocket::Address server_udp = MinimalSocket::Address{"127.0.0.1", received_message->sender.getPort()};
+
+    auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+    cout << before << endl;
+    while(true){
+
+        string response = udp_socket.receive(message_max_size)->received_message;
+        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
+        cout << endl << "Message received: " << now - before << endl << response << endl;
+        before = now;
+
+    }
+
+/*     Players player;
+    player.parseInit(init_message_content);
     cout << player << endl;
 
     MinimalSocket::Address other_sender_udp = received_message->sender;
@@ -151,12 +148,12 @@ int main(int argc, char *argv[])
     udp_socket.sendTo(move_command, server_udp);
     
     received_message = udp_socket.receive(message_max_size);
-    received_message_content = received_message->received_message;
+    init_message_content = received_message->received_message;
     
-    cout << "Listo para jugar" << endl;
+    cout << "Listo para jugar" << endl; */
 
     while(true){
         sleep(1);
     }
-     */
+    
 }
