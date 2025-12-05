@@ -48,6 +48,40 @@ struct Player
     }
 };
 
+// Busca la posicion del balon en el mensaje de vision
+// Retorna: true si encuentra el balon, false si no
+// ball_direction: angulo relativo hacia el balon
+bool buscarBalon(const string &message, double &ball_direction)
+{
+    size_t ball_pos = message.find("(b)");
+    if (ball_pos == string::npos) {
+        return false;
+    }
+    
+    size_t start = ball_pos + 3;
+    size_t end = message.find(')', start);
+    string ball_info = message.substr(start, end - start);
+    
+    size_t space_pos = ball_info.find(' ');
+    if (space_pos == string::npos) {
+        return false;
+    }
+    
+    ball_direction = stod(ball_info.substr(space_pos + 1));
+    return true;
+}
+
+// Corre hacia la posicion
+// Si esta lejos (angulo > 10), gira hacia el; si esta cerca, acelera
+void correrHaciaPosicion(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, double direction)
+{
+    if (abs(direction) > 10) {
+        udp_socket.sendTo("(turn " + to_string(direction) + ")", server_udp);
+    } else {
+        udp_socket.sendTo("(dash 100)", server_udp);
+    }
+}
+
 // main with two args
 int main(int argc, char *argv[])
 {
@@ -128,28 +162,12 @@ int main(int argc, char *argv[])
     cout << "Listo para jugar" << endl;
 
     while(true){
-        
         received_message = udp_socket.receive(message_max_size);
         received_message_content = received_message->received_message;    
         
-        //Ejemplo mensaje "see":
-        //(see 0 ((b) 10.0 20.0 0.0)                
-        size_t ball_pos = received_message_content.find("(b)");
-        if (ball_pos != string::npos) {
-            size_t start = ball_pos + 3;
-            size_t end = received_message_content.find(')', start);
-            string ball_info = received_message_content.substr(start, end - start);
-            
-            size_t space_pos = ball_info.find(' ');
-            if (space_pos != string::npos) {
-                double direction = stod(ball_info.substr(space_pos + 1));                
-                
-                if (abs(direction) > 10) {
-                    udp_socket.sendTo("(turn " + to_string(direction) + ")", server_udp);
-                } else {
-                    udp_socket.sendTo("(dash 100)", server_udp);
-                }
-            }
+        double ball_direction;
+        if (buscarBalon(received_message_content, ball_direction)) {
+            correrHaciaPosicion(udp_socket, server_udp, ball_direction);
         }
     }
     
