@@ -128,7 +128,29 @@ int main(int argc, char *argv[])
     cout << "Listo para jugar" << endl;
 
     while(true){
-        sleep(1);
+        
+        received_message = udp_socket.receive(message_max_size);
+        received_message_content = received_message->received_message;    
+        
+        //Ejemplo mensaje "see":
+        //(see 0 ((b) 10.0 20.0 0.0)                
+        size_t ball_pos = received_message_content.find("(b)");
+        if (ball_pos != string::npos) {
+            size_t start = ball_pos + 3;
+            size_t end = received_message_content.find(')', start);
+            string ball_info = received_message_content.substr(start, end - start);
+            
+            size_t space_pos = ball_info.find(' ');
+            if (space_pos != string::npos) {
+                double direction = stod(ball_info.substr(space_pos + 1));                
+                
+                if (abs(direction) > 10) {
+                    udp_socket.sendTo("(turn " + to_string(direction) + ")", server_udp);
+                } else {
+                    udp_socket.sendTo("(dash 100)", server_udp);
+                }
+            }
+        }
     }
     
 }
