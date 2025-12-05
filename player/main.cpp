@@ -48,6 +48,51 @@ struct Player
     }
 };
 
+// Busca la posicion del balon en el mensaje de vision
+// Retorna: true si encuentra el balon, false si no
+// angulo_balon: angulo relativo hacia el balon
+// distancia_balon: distancia al balon
+bool buscarBalon(const string &message, double &angulo_balon, double &distancia_balon)
+{
+    //Ejemplo de mensaje: "(see 0 ((b) 10.0 30.0) ... )"
+    size_t ball_pos = message.find("(b)");
+    if (ball_pos == string::npos) {
+        return false;
+    }
+    
+    size_t start = ball_pos + 3;
+    size_t end = message.find(')', start);
+    string ball_info = message.substr(start, end - start);
+    size_t space_pos = ball_info.find(' ', ball_info.find(' ') + 1);
+    if (space_pos == string::npos) {
+        return false;
+    }
+    
+    distancia_balon = stod(ball_info.substr(0, space_pos));
+    angulo_balon = stod(ball_info.substr(space_pos + 1));
+    return true;
+}
+
+// Corre hacia la posicion
+// Gira hacia el; si esta mirando en la direccion, corre
+void correrHaciaPosicion(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, double angulo)
+{
+    if (abs(angulo) > 10) {
+        udp_socket.sendTo("(turn " + to_string(angulo) + ")", server_udp);
+    } else {
+        udp_socket.sendTo("(dash 100)", server_udp);
+    }
+}
+
+// Patear el balon hacia la porteria del rival
+// Si el lado es 'l' (left), patear hacia la derecha
+// Si el lado es 'r' (right), patear hacia la izquierda
+void patearHaciaPorteria(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, char lado)
+{
+    double kick_direction = (lado == 'l') ? 0 : 180;  
+    udp_socket.sendTo("(kick 100 " + to_string(kick_direction) + ")", server_udp);
+}
+
 // main with two args
 int main(int argc, char *argv[])
 {
@@ -128,7 +173,17 @@ int main(int argc, char *argv[])
     cout << "Listo para jugar" << endl;
 
     while(true){
-        sleep(1);
+        received_message = udp_socket.receive(message_max_size);
+        received_message_content = received_message->received_message;    
+        
+        double angulo_balon, distancia_balon;
+        if (buscarBalon(received_message_content, angulo_balon, distancia_balon)) {
+            if (distancia_balon < 0.5) {
+                patearHaciaPorteria(udp_socket, server_udp, player.lado);
+            } else {
+                correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+            }
+        }
     }
     
 }
