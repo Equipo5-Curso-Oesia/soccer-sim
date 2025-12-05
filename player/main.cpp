@@ -4,6 +4,12 @@ using namespace std;
 
 #include <MinimalSocket/udp/UdpSocket.h>
 #include <unistd.h>
+#include <functional>
+//#include <string>
+//#include <tuple>
+
+#include <player.hpp>
+#include <utils.hpp>
 
 /*
 /////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +32,7 @@ Ejemplode como trabajar con git.
 */
 // main with three args
 
-struct Player
+/* struct Player
 {
     int numeroJugador;
     char lado;
@@ -46,11 +52,33 @@ struct Player
         os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
         return os;
     }
-};
+}; */
 
 // main with two args
 int main(int argc, char *argv[])
 {
+    //    tuple<string, int, bool> t [team_name, port, is_goalie];
+    string team_name;
+    int port;
+    bool is_goalie;
+    tuple<string, int, bool> x;
+    try {
+        x = parseArgs(argc-1, &argv[1]);
+        tie(team_name, port, is_goalie) = x;
+    } catch (const invalid_argument &e) {
+        cerr << e.what() << endl;
+        return -1;
+    }
+    
+    cout << "Arguments parsed successfully" << endl;
+    cout << x << endl;
+
+    while(true){
+        sleep(1);
+    }
+
+
+/* 
     // check if the number of arguments is correct
     if (argc != 4)
     {
@@ -64,7 +92,7 @@ int main(int argc, char *argv[])
 
     cout << "Creating a UDP socket" << endl;
 
-    MinimalSocket::udp::Udp<true> udp_socket(this_socket_port, MinimalSocket::AddressFamily::IP_V6);
+    MinimalSocket::udp::Udp<true> udp_socket(port, MinimalSocket::AddressFamily::IP_V6);
 
     cout << "Socket created" << endl;
 
@@ -130,5 +158,5 @@ int main(int argc, char *argv[])
     while(true){
         sleep(1);
     }
-    
+     */
 }

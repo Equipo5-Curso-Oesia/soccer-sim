@@ -12,12 +12,12 @@ sleep 3;
 PLAYER_EXEC=$(find . -name player -type f)
 
 # Field Players
-COMAND="\"$PLAYER_EXEC\" \"$1\""
+COMAND="\"$PLAYER_EXEC\" \"--team-name=$1\""
 for i in {0..9}
 do
-  gnome-terminal -- bash -c "$COMAND 555$i false" &
+  gnome-terminal -- bash -c "$COMAND --port=555$i" &
   sleep 1
 done
 
 # Goalkeeper Player
-gnome-terminal -- bash -c "$COMAND 55560 true" &
+gnome-terminal -- bash -c "$COMAND --port=55560 --is-goalie=true" &
