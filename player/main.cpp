@@ -155,9 +155,18 @@ int main(int argc, char *argv[])
         double angulo_balon, distancia_balon;
         if (player.buscarBalon(received_message_content, angulo_balon, distancia_balon))
 		{
-            if (distancia_balon < 0.5)
+            if (distancia_balon < 1.2)
 			{
-                player.patearHaciaPorteria(udp_socket, server_udp, player.lado);
+                // Si el jugador está de frente, chutar
+				if (fabs(angulo_balon) < 20)
+				{
+					player.patearHaciaPorteria(udp_socket, server_udp, player.lado);
+				}
+				else
+				{
+					// gira hacia el balón para controlarlo bien
+					udp_socket.sendTo("(turn " + to_string(angulo_balon) + ")", server_udp);
+				}
             } 
 			else if(!is_goalie)
 			{
