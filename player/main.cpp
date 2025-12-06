@@ -1,19 +1,6 @@
-#include <iostream>
+#include <player.hpp>
 
 using namespace std;
-
-#include <MinimalSocket/udp/UdpSocket.h>
-#include <unistd.h>
-#include <functional>
-
-
-
-#include <chrono>
-
-
-#include <player.hpp>
-#include <utils.hpp>
-
 /*
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +22,7 @@ Ejemplode como trabajar con git.
 */
 // main with three args
 
-struct Players
+/* struct Players
 {
     int numeroJugador;
     char lado;
@@ -55,7 +42,7 @@ struct Players
         //os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
         return os;
     }
-};
+}; */
 
 // main with two args
 int main(int argc, char *argv[])
@@ -64,61 +51,35 @@ int main(int argc, char *argv[])
     string team_name;
     MinimalSocket::Port send_port;
     bool is_goalie;
-    tuple<string, int, bool> x;
     try {
-        x = parseArgs(argc-1, &argv[1]);
-        tie(team_name, send_port, is_goalie) = x;
+        tie(team_name, send_port, is_goalie) = parseArgs(argc-1, &argv[1]);
     } catch (const invalid_argument &e) {
         cerr << e.what() << endl;
         return -1;
     }
     
     cout << "Arguments parsed successfully" << endl;
-    cout << x << endl;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    string init_message_content = "(init " + team_name + " (version 19)";
-    if(is_goalie)
-        init_message_content += " (goalie)";
-    init_message_content += ")";
-    cout << init_message_content << endl;
+    //Player player = Player("sdffsdfsd");
+    Player player{team_name, send_port, is_goalie};
 
 
-    cout << "Creating a UDP socket" << endl;
-    MinimalSocket::udp::Udp<true> udp_socket(send_port, MinimalSocket::AddressFamily::IP_V6);
-    cout << "Socket created" << endl;
+    cout << "Player created successfully" << endl;
 
-    if (!udp_socket.open())
-    {
-        cerr << "Error opening socket" << endl;
-        return 1;
-    }
+    
 
-    MinimalSocket::Address other_recipient_udp = MinimalSocket::Address{"127.0.0.1", 6000};
-    udp_socket.sendTo(init_message_content, other_recipient_udp);
-    cout << "Init Message sent" << endl;
-
-
-    std::size_t message_max_size = 4096;
-    cout << "Waiting for a message" << endl;
-    auto received_message = udp_socket.receive(message_max_size);
-    std::string received_message_content = received_message->received_message;
-
-    cout << "Message received: " << received_message_content << endl;
-
-    MinimalSocket::Address server_udp = MinimalSocket::Address{"127.0.0.1", received_message->sender.getPort()};
-
-    auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+/*     auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
     cout << before << endl;
     while(true){
 
-        string response = udp_socket.receive(message_max_size)->received_message;
+        string response = player.getserverMessage()->received_message;
         auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
         cout << endl << "Message received: " << now - before << endl << response << endl;
         before = now;
 
-    }
+    } */
 
 /*     Players player;
     player.parseInit(init_message_content);

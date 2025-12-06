@@ -1,6 +1,113 @@
 #include <player.hpp>
 
+Player::Player(string team_name, MinimalSocket::Port player_port,  bool is_goalie) noexcept: 
+team_name{team_name}, player_port{player_port}, is_goalie{is_goalie},
+server_udp{"127.0.0.1", server_port}, udp_socket(player_port, MinimalSocket::AddressFamily::IP_V6)
+{
+    string init_message_content = "(init " + team_name + " (version 19)";
+    if(is_goalie)
+        init_message_content += " (goalie)";
+    init_message_content += ")";
 
+    //udp_socket = MinimalSocket::udp::Udp<true>(player_port, MinimalSocket::AddressFamily::IP_V6);
+
+    if (!udp_socket.open())
+        throw runtime_error("Error opening socket");
+
+    //server_udp = MinimalSocket::Address{"127.0.0.1", server_port};
+    udp_socket.sendTo(init_message_content, server_udp);
+
+    auto received_message = this->getserverMessage();
+    auto return_message_content = split(received_message->received_message, ' ');
+
+    side = return_message_content.at(1).at(0);
+    player_number  = stoi(return_message_content.at(2));
+    return_message_content.at(3).pop_back(); // remove last char ")"
+    game_state = hashString(return_message_content.at(3));
+
+    server_port = received_message->sender.getPort();
+    server_udp = MinimalSocket::Address{"127.0.0.1", server_port};
+    
+    string response;
+    do{
+        response = this->getserverMessage()->received_message;
+
+        if(response.find("(server_param") == 0){
+            int n = response.find('(', 1);
+            server_params = parseServerMessage(response.substr(n, response.size() - n-1)); // remove (server_param ... )
+        } else if(response.find("(player_param") == 0){
+            int n = response.find('(', 1);
+            player_params = parseServerMessage(response.substr(n, response.size() - n-1));
+        } else if(response.find("(player_type") == 0){
+            int n = response.find('(', 1);
+            player_types.push_back(parseServerMessage(response.substr(n, response.size() - n-1)));
+        } else if (response != "(ok synch_see)")
+            throw runtime_error("Unexpected message received during initialization: \n" + response.substr(0, 20));
+
+    } while (response != "(ok synch_see)");
+
+/*     cout << "{"; // Inicio del mapa
+    bool first = true;
+
+    // Iterar sobre todos los pares clave-valor
+    for (const auto& pair : player_types.at(0)) {
+        if (!first) {
+            cout << "\n"; // Separador entre elementos
+        }
+        // Imprimir el par en formato: [clave: valor]
+        
+        string val = std::get<string>(pair.second);
+        cout << "[" << pair.first << ": " << val << "]";
+        first = false;
+    }
+
+
+
+    cout << "}" << endl; // Fin del mapa
+
+    //cout << player_types.at(0) << endl; */
+    
+}
+
+std::optional<MinimalSocket::ReceiveStringResult> Player::getserverMessage(){
+    auto received_message = udp_socket.receive(message_max_size);
+    received_message->received_message.pop_back(); // remove last char eof
+    return received_message;
+}
+
+Player::RecursiveTypeMap Player::parseServerMessage(const string& message){
+    // This asume is (key value)()()..() no nested structures
+
+    Player::RecursiveTypeMap parse;
+    size_t pos =0;
+    while(pos != string::npos && pos < message.size()){
+        auto openParPos = message.find('(', pos);
+        auto closeParPos = message.find(')', pos);
+
+        vector<string> v = split(message.substr(openParPos+1, closeParPos-openParPos-1), ' ');
+        parse[v.at(0)] = v.at(1);
+        pos = ++closeParPos;
+    }
+    return parse;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 
 struct Vec2 {
     double x = 0.0;
     double y = 0.0;
@@ -17,9 +124,9 @@ struct Vec2 {
         double L = length();
         return (L > 1e-9) ? Vec2(x / L, y / L) : Vec2(0, 0);
     }
-};
+}; */
 
-class Player {
+/* class Player {
 public:
     Player(int id, const std::string& name, const Vec2& startPos = Vec2{})
         : id_(id), name_(name), pos_(startPos) {}
@@ -90,7 +197,7 @@ private:
     double kickPower_ = 20.0;           // arbitrary units
     double stamina_ = 1.0;              // 0..1
     double staminaDrainPerSec_ = 0.05;  // per second while moving
-};
+}; */
 
 // Example usage (comment out or remove in production):
 /*
