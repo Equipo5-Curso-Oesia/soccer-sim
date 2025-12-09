@@ -1,4 +1,5 @@
 #include <player.hpp>
+#include <utils.hpp>
 
 Player::Player(string team_name, MinimalSocket::Port player_port,  bool is_goalie) noexcept: 
 team_name{team_name}, player_port{player_port}, is_goalie{is_goalie},
@@ -18,19 +19,25 @@ server_udp{"127.0.0.1", server_port}, udp_socket(player_port, MinimalSocket::Add
     udp_socket.sendTo(init_message_content, server_udp);
 
     auto received_message = this->getserverMessage();
-    auto return_message_content = split(received_message->received_message, ' ');
+    auto received_message_content = split(received_message->received_message, ' ');
 
-    side = return_message_content.at(1).at(0);
-    player_number  = stoi(return_message_content.at(2));
-    return_message_content.at(3).pop_back(); // remove last char ")"
-    game_state = hashString(return_message_content.at(3));
+    side = received_message_content.at(1).at(0);
+    player_number  = stoi(received_message_content.at(2));
+    received_message_content.at(3).pop_back(); // remove last char ")"
+    game_state = hashString(received_message_content.at(3));
 
     server_port = received_message->sender.getPort();
     server_udp = MinimalSocket::Address{"127.0.0.1", server_port};
-    
+
+    //udp_socket.sendTo("(compression 11)", server_udp);
+    //udp_socket.sendTo("(gaussian_see)", server_udp);
+
     string response;
     do{
+
         response = this->getserverMessage()->received_message;
+
+        //cout << "response msg: " << response << endl;
 
         if(response.find("(server_param") == 0){
             int n = response.find('(', 1);
@@ -61,13 +68,36 @@ server_udp{"127.0.0.1", server_port}, udp_socket(player_port, MinimalSocket::Add
         first = false;
     }
 
-
-
     cout << "}" << endl; // Fin del mapa
 
     //cout << player_types.at(0) << endl; */
     
 }
+
+void Player::getServer() {
+
+    //Receive from the server
+    // Parse message
+    // If next message is see
+        // receive see
+        // parse see 
+    
+    auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+    string response = this->getserverMessage()->received_message;        
+    
+    auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
+
+    cout << endl << "Message received: " << now - before << endl << response << endl;
+
+}
+
+//TODO: see is every 3 cycles but may be changed, static each 3 cycles will be implemented
+
+//TODO: provide estimation for cycles in between see info
+
+//TODO: make predictions about feacility of reaching the ball
+
+//TODO: coordinate pases
 
 std::optional<MinimalSocket::ReceiveStringResult> Player::getserverMessage(){
     auto received_message = udp_socket.receive(message_max_size);
@@ -85,24 +115,22 @@ Player::RecursiveTypeMap Player::parseServerMessage(const string& message){
         auto closeParPos = message.find(')', pos);
 
         vector<string> v = split(message.substr(openParPos+1, closeParPos-openParPos-1), ' ');
-        parse[v.at(0)] = v.at(1);
+
+        try {
+            if (count(v.at(1).begin(), v.at(1).end(), '.') == 0 && 
+                count(v.at(1).begin(), v.at(1).end(), 'E') == 0 && 
+                count(v.at(1).begin(), v.at(1).end(), 'E') == 0)
+                parse[v.at(0)] = stoi(v.at(1));
+            else
+                parse[v.at(0)] = stod(v.at(1));
+        }catch(const invalid_argument &e) {
+            parse[v.at(0)] = v.at(1);
+        }
+                
         pos = ++closeParPos;
     }
     return parse;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

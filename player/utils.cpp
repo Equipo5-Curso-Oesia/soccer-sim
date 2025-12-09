@@ -67,12 +67,39 @@ tuple<string, MinimalSocket::Port, bool> parseArgs (int argc, char* argv[]) {
     return make_tuple(team_name, port, is_goalie);
 };
 
-vector<string> split(const string &s, char delimiter) {
+vector<string> split(string const& s, string delimiter) {
+    std::vector<std::string> tokens;
+    
+    if (s.empty() || delimiter.empty()) {
+        tokens.push_back(s);
+        return tokens;
+    }
+
+    size_t pos_ini = 0;
+    size_t pos_end;
+    size_t delimiter_length = delimiter.length();
+
+    while ((pos_end = s.find(delimiter, pos_ini)) != std::string::npos) {
+        
+        tokens.push_back(s.substr(pos_ini, pos_end - pos_ini));
+
+        pos_ini = pos_end + delimiter_length;
+    }
+
+    // 4. Añadir el último token
+    // La subcadena restante (desde pos_inicio hasta el final del string) es el último token.
+    tokens.push_back(s.substr(pos_ini));
+
+    return tokens;
+}
+
+vector<string> split(string const& s, char delimiter, function<string(string)> const& modFunct) {
     vector<string> tokens;
     string token;
     istringstream tokenStream(s);
     while (getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
+        tokens.push_back(modFunct(token));
     }
     return tokens;
 };
+

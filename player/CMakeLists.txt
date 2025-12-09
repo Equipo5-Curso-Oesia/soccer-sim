@@ -28,6 +28,7 @@ set(SOURCE_FILES
     main.cpp
     player.cpp
     utils.cpp
+    field.cpp
 )
 
 # Create the player executable from source files

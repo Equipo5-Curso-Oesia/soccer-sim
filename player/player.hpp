@@ -3,9 +3,13 @@
 #include <unistd.h>
 #include <chrono>
 #include <stdexcept>
-#include <utils.hpp>
 #include <map>
 #include <variant>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <functional>
+#include <MinimalSocket/udp/UdpSocket.h>
 
 
 using namespace std;
@@ -16,6 +20,8 @@ public:
 
     Player(string team_name, MinimalSocket::Port player_port,  bool is_goalie) noexcept;
     std::optional<MinimalSocket::ReceiveStringResult> getserverMessage();
+
+    void getServer();
 
 
 protected:

@@ -1,4 +1,6 @@
 #include <player.hpp>
+#include <field.hpp>
+#include <utils.hpp>
 
 using namespace std;
 /*
@@ -20,31 +22,7 @@ Ejemplode como trabajar con git.
 
 /////////////////////////////////////////////////////////////////////////////////
 */
-// main with three args
 
-/* struct Players
-{
-    int numeroJugador;
-    char lado;
-
-    void parseInit(string msg)
-    {   
-        // ejemplo msg: (init l 2 before_kick_off)
-        size_t pos = msg.find(' ');
-        lado = msg[pos + 1];
-        size_t pos_inicio_numero = msg.find(' ', pos + 1);
-        size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
-        numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
-    }
-
-    friend ostream &operator<<(ostream &os, const Player &p)
-    {
-        //os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
-        return os;
-    }
-}; */
-
-// main with two args
 int main(int argc, char *argv[])
 {
     //    tuple<string, int, bool> t [team_name, port, is_goalie];
@@ -62,13 +40,29 @@ int main(int argc, char *argv[])
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //Player player = Player("sdffsdfsd");
     Player player{team_name, send_port, is_goalie};
-
-
     cout << "Player created successfully" << endl;
 
-    
+    auto f = Field::getInstance();
+
+    auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+    cout << before << endl;
+    while(true){
+
+        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
+        //player.getServer();
+        auto msg = player.getserverMessage();
+        before = now;
+        if (msg->received_message.substr(0, 4) == "(see"){
+            
+            cout << msg->received_message.substr(7, msg->received_message.size()-8) << endl;
+            f.parseSee(msg->received_message.substr(7, msg->received_message.size()-8));
+        }
+
+        // Aquí va la logica del jugador
+        // La logica devuelve la accion/acciones a enviar al servidor
+
+    }
 
 /*     auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
     cout << before << endl;
