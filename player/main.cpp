@@ -26,10 +26,18 @@ Ejemplode como trabajar con git.
 */
 // main with three args
 
+enum class RolJugador {
+    Portero,
+    Defensa,
+    Medio,
+    Delantero
+};
+
 struct Player
 {
     int numeroJugador;
     char lado;
+    RolJugador rol;
 
     void parseInit(string msg)
     {   
@@ -39,11 +47,31 @@ struct Player
         size_t pos_inicio_numero = msg.find(' ', pos + 1);
         size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
         numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
+        asignarRol();
+    }
+
+    void asignarRol() {
+        // Asignación simple por número de jugador
+        if (numeroJugador == 11) {
+            rol = RolJugador::Portero;
+        } else if (numeroJugador >= 1 && numeroJugador <= 4) {
+            rol = RolJugador::Defensa;
+        } else if (numeroJugador >= 5 && numeroJugador <= 7) {
+            rol = RolJugador::Medio;
+        } else {
+            rol = RolJugador::Delantero;
+        }
     }
 
     friend ostream &operator<<(ostream &os, const Player &p)
     {
-        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
+        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado << ". Mi rol es: ";
+        switch (p.rol) {
+            case RolJugador::Portero: os << "Portero"; break;
+            case RolJugador::Defensa: os << "Defensa"; break;
+            case RolJugador::Medio: os << "Medio"; break;
+            case RolJugador::Delantero: os << "Delantero"; break;
+        }
         return os;
     }
 };
@@ -147,17 +175,17 @@ int main(int argc, char *argv[])
     MinimalSocket::Address other_sender_udp = received_message->sender;
     MinimalSocket::Address server_udp = MinimalSocket::Address{"127.0.0.1", other_sender_udp.getPort()};
 
-    int posicionInicial[11][2] = {
-        {-10, 0},   // Player 1
-        {-40, -20}, // Player 2
-        {-40, 0},   // Player 3
-        {-40, 20},  // Player 4
-        {-30, -30}, // Player 5
-        {-30, 0},   // Player 6
-        {-30, 30},  // Player 7
-        {-20, -20}, // Player 8
-        {-20, 0},   // Player 9
-        {-20, 20},  // Player 10
+    int posicionInicial[11][2] = {        
+        {-40, -20}, // Player 1
+        {-40, 0},   // Player 2
+        {-40, 20},  // Player 3
+        {-30, -30}, // Player 4
+        {-30, 0},   // Player 5
+        {-30, 30},  // Player 6
+        {-20, -20}, // Player 7
+        {-20, 0},   // Player 8
+        {-20, 20},  // Player 9
+        {-10, 0},   // Player 10
         {-50, 0}    // Player 11
     };
     
