@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -105,7 +106,7 @@ bool buscarBalon(const string &message, double &angulo_balon, double &distancia_
 // Gira hacia el; si esta mirando en la direccion, corre
 void correrHaciaPosicion(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, double angulo)
 {
-    if (abs(angulo) > 10) {
+    if (std::abs(angulo) > 10) {
         udp_socket.sendTo("(turn " + to_string(angulo) + ")", server_udp);
     } else {
         udp_socket.sendTo("(dash 100)", server_udp);
@@ -119,6 +120,25 @@ void patearHaciaPorteria(MinimalSocket::udp::Udp<true> &udp_socket, const Minima
 {
     double kick_direction = (lado == 'l') ? 0 : 180;  
     udp_socket.sendTo("(kick 100 " + to_string(kick_direction) + ")", server_udp);
+}
+
+// Comportamiento sencillo del portero: despeja si el balón está muy cerca,
+// sale a por él en un rango corto y, si no, se limita a orientarse
+void comportamientoPortero(MinimalSocket::udp::Udp<true> &udp_socket, const MinimalSocket::Address &server_udp, double angulo_balon, double distancia_balon, char lado)
+{
+    if (distancia_balon < 0.8) {
+        patearHaciaPorteria(udp_socket, server_udp, lado);
+        return;
+    }
+
+    if (distancia_balon < 15.0) {
+        correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+        return;
+    }
+
+    if (std::abs(angulo_balon) > 5.0) {
+        udp_socket.sendTo("(turn " + to_string(angulo_balon) + ")", server_udp);
+    }
 }
 
 // main with two args
@@ -205,12 +225,20 @@ int main(int argc, char *argv[])
         received_message_content = received_message->received_message;    
         
         double angulo_balon, distancia_balon;
-        if (buscarBalon(received_message_content, angulo_balon, distancia_balon)) {
-            if (distancia_balon < 0.5) {
-                patearHaciaPorteria(udp_socket, server_udp, player.lado);
+        bool balon_visible = buscarBalon(received_message_content, angulo_balon, distancia_balon);
+
+        if (balon_visible) {
+            if (player.rol == RolJugador::Portero) {
+                comportamientoPortero(udp_socket, server_udp, angulo_balon, distancia_balon, player.lado);
             } else {
-                correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+                if (distancia_balon < 0.5) {
+                    patearHaciaPorteria(udp_socket, server_udp, player.lado);
+                } else {
+                    correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+                }
             }
+        } else if (player.rol == RolJugador::Portero) {
+            udp_socket.sendTo("(turn 30)", server_udp);
         }
     }
     
