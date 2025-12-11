@@ -12,3 +12,5 @@ Rodrigo Martínez Ruiz
 ## Link al Vídeo Explicación
 
 [Equipo 5 - Curso C++ - Semana 2](https://youtu.be/kr84x-voLN4)
+
+[Equipo 5 - Curso C++ - Semana 3](https://www.youtube.com/watch?v=R1ZctrSJzss)

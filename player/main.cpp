@@ -22,7 +22,31 @@ Ejemplode como trabajar con git.
 
 /////////////////////////////////////////////////////////////////////////////////
 */
+// main with three args
 
+struct Player
+{
+    int numeroJugador;
+    char lado;
+
+    void parseInit(string msg)
+    {   
+        // ejemplo msg: (init l 2 before_kick_off)
+        size_t pos = msg.find(' ');
+        lado = msg[pos + 1];
+        size_t pos_inicio_numero = msg.find(' ', pos + 1);
+        size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
+        numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
+    }
+
+    friend ostream &operator<<(ostream &os, const Player &p)
+    {
+        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
+        return os;
+    }
+};
+
+// main with two args
 int main(int argc, char *argv[])
 {
     //    tuple<string, int, bool> t [team_name, port, is_goalie];
@@ -118,7 +142,17 @@ int main(int argc, char *argv[])
     cout << "Listo para jugar" << endl; */
 
     while(true){
-        sleep(1);
+        received_message = udp_socket.receive(message_max_size);
+        received_message_content = received_message->received_message;    
+        
+        double angulo_balon, distancia_balon;
+        if (buscarBalon(received_message_content, angulo_balon, distancia_balon)) {
+            if (distancia_balon < 0.5) {
+                patearHaciaPorteria(udp_socket, server_udp, player.lado);
+            } else {
+                correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
+            }
+        }
     }
     
 }
