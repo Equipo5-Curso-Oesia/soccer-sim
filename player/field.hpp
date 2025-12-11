@@ -11,6 +11,7 @@
 #include <functional>
 
 typedef double dist;
+// Dir is relative to player sight, 0º means in front of it, looking at him, +900º means in his left, and -90º means in his right 
 typedef double dir;
 typedef double posX;
 typedef double posY;
@@ -50,10 +51,10 @@ private:
 
     inline static Field* instance = nullptr;
 
-    tuple<posX, posY, dir> me{52.5, 0, 0};
+    tuple<posX, posY, dir> me{10, 0, 147};
 
     vector<pair<string, pair<dist, dir>>> marks_to_this_distance_and_dir; 
-    vector<tuple<string, dist, dir>> players_position;
+    map<string, pair<dist, dir>> players_position;
     pair<dist, dir> ball_position;
 
     map<string, pair<posX, posY>> markers_positions = {

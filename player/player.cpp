@@ -18,7 +18,7 @@ server_udp{"127.0.0.1", server_port}, udp_socket(player_port, MinimalSocket::Add
     //server_udp = MinimalSocket::Address{"127.0.0.1", server_port};
     udp_socket.sendTo(init_message_content, server_udp);
 
-    auto received_message = this->getserverMessage();
+    auto received_message = this->getServerMessage();
     auto received_message_content = split(received_message->received_message, ' ');
 
     side = received_message_content.at(1).at(0);
@@ -34,10 +34,7 @@ server_udp{"127.0.0.1", server_port}, udp_socket(player_port, MinimalSocket::Add
 
     string response;
     do{
-
-        response = this->getserverMessage()->received_message;
-
-        //cout << "response msg: " << response << endl;
+        response = this->getServerMessage()->received_message;
 
         if(response.find("(server_param") == 0){
             int n = response.find('(', 1);
@@ -83,11 +80,14 @@ void Player::getServer() {
         // parse see 
     
     auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-    string response = this->getserverMessage()->received_message;        
+    string response = this->getServerMessage()->received_message;        
     
     auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
-
-    cout << endl << "Message received: " << now - before << endl << response << endl;
+    cout << "Message received: " << now - before << endl << response << endl;
+    if (response.substr(0, 5) == "(see ") {
+        this->getServer();
+    }
+    
 
 }
 
@@ -99,7 +99,7 @@ void Player::getServer() {
 
 //TODO: coordinate pases
 
-std::optional<MinimalSocket::ReceiveStringResult> Player::getserverMessage(){
+std::optional<MinimalSocket::ReceiveStringResult> Player::getServerMessage(){
     auto received_message = udp_socket.receive(message_max_size);
     received_message->received_message.pop_back(); // remove last char eof
     return received_message;
@@ -133,7 +133,14 @@ Player::RecursiveTypeMap Player::parseServerMessage(const string& message){
 }
 
 
-
+void Player::x(string s) {
+    cout << "before: ";
+    this->getServer();
+    udp_socket.sendTo(s, server_udp);
+    cout << "after: ";
+    this->getServer();
+    
+};
 
 /* 
 struct Vec2 {

@@ -19,9 +19,11 @@ class Player
 public:
 
     Player(string team_name, MinimalSocket::Port player_port,  bool is_goalie) noexcept;
-    std::optional<MinimalSocket::ReceiveStringResult> getserverMessage();
+    std::optional<MinimalSocket::ReceiveStringResult> getServerMessage();
 
     void getServer();
+
+    void x(string s);
 
 
 protected:

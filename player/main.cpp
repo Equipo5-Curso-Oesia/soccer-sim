@@ -45,13 +45,23 @@ int main(int argc, char *argv[])
 
     auto f = Field::getInstance();
 
+    //sleep(1);
+    //player.x("(turn 45)");
+    //sleep(1);
+    player.x("(move -34 0)");
+    //sleep(1);
+    //player.x("(turn 45)");
+
+    //player.x("(turn_neck 45)");
+
+
     auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
     cout << before << endl;
     while(true){
 
         auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
         //player.getServer();
-        auto msg = player.getserverMessage();
+        auto msg = player.getServerMessage();
         before = now;
         if (msg->received_message.substr(0, 4) == "(see"){
             
