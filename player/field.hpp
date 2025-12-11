@@ -10,6 +10,11 @@
 #include <sstream>
 #include <functional>
 
+// This class gather all info respect the elements in the field.
+// It is a singleton class, only a single element is possible
+// This class parse see server info and process positions
+// To access positions getters and setters
+
 typedef double dist;
 // Dir is relative to player sight, 0º means in front of it, looking at him, +900º means in his left, and -90º means in his right 
 typedef double dir;
@@ -28,9 +33,19 @@ public:
             instance = new Field();
         return *instance;
     };
-        
     ~Field() = default;
 
+    void resetPos() {
+        me = {0, 0, 0};
+    }
+
+    void setMove(posX x, posY y) {
+        get<0>(me) = x;
+        get<1>(me) = y;
+    }
+    void setTurn(dir dir) {
+        get<2>(me) += dir;
+    }
     void calculatePositions(bool see_refresh = false);
 
     void parseSee(string const& s);
@@ -43,21 +58,21 @@ protected:
 
 //TODO: Crear clase Jugador que gestione el jugador y la estrategia
 //Crear una clase que gestione todo lo relacionado con el servidor y la comunicacion
-//
+//TODO: comprobar cual es mi lado del campo y cambiar el origen
 
 private:
 
-    Field() = default;
+    Field();
 
     inline static Field* instance = nullptr;
 
-    tuple<posX, posY, dir> me{10, 0, 147};
+    tuple<posX, posY, dir> me{0, 0, 0};
 
     vector<pair<string, pair<dist, dir>>> marks_to_this_distance_and_dir; 
     map<string, pair<dist, dir>> players_position;
     pair<dist, dir> ball_position;
 
-    map<string, pair<posX, posY>> markers_positions = {
+    map<string, pair<posX, posY>> flags_positions = {
 
         // Own goal is the reference (x, y)=(0, 0)
         // Field length is x, width is y

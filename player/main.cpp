@@ -1,6 +1,7 @@
-#include <player.hpp>
+#include <server.hpp>
 #include <field.hpp>
 #include <utils.hpp>
+#include <player.hpp>
 
 using namespace std;
 /*
@@ -24,7 +25,7 @@ Ejemplode como trabajar con git.
 */
 // main with three args
 
-struct Player
+/* struct Player
 {
     int numeroJugador;
     char lado;
@@ -44,7 +45,7 @@ struct Player
         os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
         return os;
     }
-};
+}; */
 
 // main with two args
 int main(int argc, char *argv[])
@@ -64,50 +65,35 @@ int main(int argc, char *argv[])
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    Player player{team_name, send_port, is_goalie};
+    Server& server = Server::getInstance(team_name, send_port, is_goalie);
     cout << "Player created successfully" << endl;
 
-    auto f = Field::getInstance();
+    Field field = Field::getInstance();
+
+    Player player = Player::getInstance();
+
+    cout << "dsffsdsdfsfdfsddfsfsdsdfsdf: " <<player.getSide() << endl;
 
     //sleep(1);
-    //player.x("(turn 45)");
+    //server.x("(turn 45)");
     //sleep(1);
-    player.x("(move -34 0)");
+    //server.x("(move -52.5 30)");
     //sleep(1);
-    //player.x("(turn 45)");
+    //server.x("(turn 45)");
+    //server.x("(turn_neck 45)");
 
-    //player.x("(turn_neck 45)");
 
-
-    auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-    cout << before << endl;
+    //auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+    //cout << before << endl;
     while(true){
 
-        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
-        //player.getServer();
-        auto msg = player.getServerMessage();
-        before = now;
-        if (msg->received_message.substr(0, 4) == "(see"){
-            
-            cout << msg->received_message.substr(7, msg->received_message.size()-8) << endl;
-            f.parseSee(msg->received_message.substr(7, msg->received_message.size()-8));
-        }
+        server.getServer();
+        player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
         // Aquí va la logica del jugador
         // La logica devuelve la accion/acciones a enviar al servidor
 
     }
-
-/*     auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-    cout << before << endl;
-    while(true){
-
-        string response = player.getserverMessage()->received_message;
-        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
-        cout << endl << "Message received: " << now - before << endl << response << endl;
-        before = now;
-
-    } */
 
 /*     Players player;
     player.parseInit(init_message_content);
@@ -141,7 +127,7 @@ int main(int argc, char *argv[])
     
     cout << "Listo para jugar" << endl; */
 
-    while(true){
+/*     while(true){
         received_message = udp_socket.receive(message_max_size);
         received_message_content = received_message->received_message;    
         
@@ -153,6 +139,6 @@ int main(int argc, char *argv[])
                 correrHaciaPosicion(udp_socket, server_udp, angulo_balon);
             }
         }
-    }
+    } */
     
 }

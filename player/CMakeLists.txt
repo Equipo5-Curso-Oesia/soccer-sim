@@ -26,9 +26,10 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/_deps/min_sock-src/build)
 # Set source files for the player executable
 set(SOURCE_FILES
     main.cpp
-    player.cpp
+    server.cpp
     utils.cpp
     field.cpp
+    player.cpp
 )
 
 # Create the player executable from source files
