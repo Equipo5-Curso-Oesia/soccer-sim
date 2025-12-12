@@ -20,15 +20,15 @@ server_udp{"127.0.0.1", server_port}, udp_socket{player_port, MinimalSocket::Add
     server_udp = MinimalSocket::Address{"127.0.0.1", server_port};
     udp_socket.sendTo(init_message_content, server_udp);
 
-    auto received_message = this->getServerMessage();
+    auto received_message = getServerMessage();
     auto received_message_content = split(received_message->received_message, ' ');
 
     received_message_content.at(3).pop_back(); // remove last char ")"
     game_state = hashString(received_message_content.at(3));
-    Player player = Player::getInstance(team_name, 
-                                        stoi(received_message_content.at(2)), 
-                                        received_message_content.at(1).at(0), 
-                                        is_goalie);
+    Player::getInstance(team_name, 
+                        stoi(received_message_content.at(2)), 
+                        received_message_content.at(1).at(0), 
+                        is_goalie);
 
     
 
@@ -59,55 +59,55 @@ server_udp{"127.0.0.1", server_port}, udp_socket{player_port, MinimalSocket::Add
 }
 
 void Server::getServer(bool debug) {
-
     //Receive from the server
     // Parse message
     // If next message is see
         // receive see
         // parse see 
     string response;
-    Field field = Field::getInstance();
-    Player player = Player::getInstance();
+    Field& field = Field::getInstance();
+    Player& player = Player::getInstance();
     if (debug) 
-     response = this->getServerMessage()->received_message;   
+     response = getServerMessage()->received_message;   
     else {    
         auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-        response = this->getServerMessage()->received_message;        
+        response = getServerMessage()->received_message;        
         auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
         cout << "Message received: " << now - before << endl << response << endl;
     }
-    if (response.substr(0, 5) == "(see ") {
-        istringstream responseStream(response);
+    if (response.substr(0, 12) == "(sense_body ") {
         string token;
-        getline(responseStream, token, '(');
-        getline(responseStream, token, '('); 
-        token = "(" + token; // Equals to: "(see Time "
-        field.parseSee(response.substr(token.size(), response.size()-(token.size()+1)));
-        this->getServer();
-    } else {
         istringstream responseStream(response);
-        string token;
+        getline(responseStream, token, ' ');
+        getline(responseStream, token, ' '); 
+        time = stoi(token);
+
+        istringstream responseStream(response);
         getline(responseStream, token, '(');
         getline(responseStream, token, '('); 
         token = "(" + token; // Equals to: "(sense_body Time "
         //TODO: implement player
-        player.parseSense_body(response.substr(token.size(), response.size()-(token.size()+1)));
+        player.parseSense_body(time, response.substr(token.size(), response.size()-(token.size()+1)));
+        field.calculatePositions();
+    } else if (response.substr(0, 5) == "(see ") {
+        string token;
+        istringstream responseStream(response);
+        getline(responseStream, token, ' ');
+        getline(responseStream, token, ' '); 
+        time = stoi(token);
+
+        istringstream responseStream(response);
+        getline(responseStream, token, '(');
+        getline(responseStream, token, '('); 
+        token = "(" + token; // Equals to: "(see Time "
+        field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
+        getServer();
+    } else {
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "Message received: " << endl << response << endl;
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        getServer();
     }
-
-}
-
-//TODO: see is every 3 cycles but may be changed, static each 3 cycles will be implemented
-
-//TODO: provide estimation for cycles in between see info
-
-//TODO: make predictions about feacility of reaching the ball
-
-//TODO: coordinate pases
-
-std::optional<MinimalSocket::ReceiveStringResult> Server::getServerMessage(){
-    auto received_message = udp_socket.receive(message_max_size);
-    received_message->received_message.pop_back(); // remove last char eof
-    return received_message;
 }
 
 Server::RecursiveTypeMap Server::parseServerMessage(const string& message){
@@ -137,13 +137,26 @@ Server::RecursiveTypeMap Server::parseServerMessage(const string& message){
     return parse;
 }
 
+//TODO: see is every 3 cycles but may be changed, static each 3 cycles will be implemented
+
+//TODO: provide estimation for cycles in between see info
+
+//TODO: make predictions about feacility of reaching the ball
+
+//TODO: coordinate pases
+
+std::optional<MinimalSocket::ReceiveStringResult> Server::getServerMessage(){
+    auto received_message = udp_socket.receive(message_max_size);
+    received_message->received_message.pop_back(); // remove last char eof
+    return received_message;
+}
 
 void Server::x(string s) {
     cout << "before: ";
-    this->getServer();
+    getServer();
     udp_socket.sendTo(s, server_udp);
     cout << "after: ";
-    this->getServer();
+    getServer();
     
 };
 

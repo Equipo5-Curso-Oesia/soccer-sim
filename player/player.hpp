@@ -40,7 +40,7 @@ public:
     }
 
     void play();
-    void parseSense_body(string const& s);
+    void parseSense_body(int time, string const& s);
 
 protected:
 
@@ -55,5 +55,7 @@ private:
     bool is_goalie;
     int player_number;
 
-    char side = 'x';
+    char side;
+
+    int parse_time;
 };

@@ -68,11 +68,11 @@ int main(int argc, char *argv[])
     Server& server = Server::getInstance(team_name, send_port, is_goalie);
     cout << "Player created successfully" << endl;
 
-    Field field = Field::getInstance();
+    Field& field = Field::getInstance();
 
-    Player player = Player::getInstance();
+    Player& player = Player::getInstance();
 
-    cout << "dsffsdsdfsfdfsddfsfsdsdfsdf: " <<player.getSide() << endl;
+    //cout << "dsffsdsdfsfdfsddfsfsdsdfsdf: " <<player.getSide() << endl;
 
     //sleep(1);
     //server.x("(turn 45)");

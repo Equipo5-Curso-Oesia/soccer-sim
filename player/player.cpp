@@ -7,6 +7,6 @@ team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goa
 void Player::play(){
 
 };
-void Player::parseSense_body(string const& s){
+void Player::parseSense_body(int time, string const& s){
 
 };

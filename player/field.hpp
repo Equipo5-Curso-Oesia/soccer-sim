@@ -46,9 +46,9 @@ public:
     void setTurn(dir dir) {
         get<2>(me) += dir;
     }
-    void calculatePositions(bool see_refresh = false);
+    void calculatePositions(int time, bool see_refresh = false);
 
-    void parseSee(string const& s);
+    void parseSee(int time, string const& s);
 
 protected:
 
@@ -66,6 +66,7 @@ private:
 
     inline static Field* instance = nullptr;
 
+    int parse_time;
     tuple<posX, posY, dir> me{0, 0, 0};
 
     vector<pair<string, pair<dist, dir>>> marks_to_this_distance_and_dir; 

@@ -68,6 +68,7 @@ private:
         return GameState::unknown;
     }};
     GameState game_state = GameState::unknown;
+    int time;
 
     class RecursiveMap;
     using RecursiveTypeMap = map<string, variant<int, double, string>>;//,unique_ptr<RecursiveMap>>>;

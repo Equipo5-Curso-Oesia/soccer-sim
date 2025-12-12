@@ -9,7 +9,7 @@ const double pos_err_convr_min {1e-4};
 const double dir_err_convr_min{1e-6};
 
 Field::Field(){
-    Player p = Player::getInstance();
+    Player& p = Player::getInstance();
     if (p.getSide() == 'r') {
         get<2>(me) =  180;
         for (auto flag:flags_positions)
@@ -18,7 +18,7 @@ Field::Field(){
 };
 
 // string without '(see (' and ))eof '(flag) dist dir) ((flag) dir) ... ((flag) ...'
-void Field::calculatePositions(bool see_refresh) {
+void Field::calculatePositions(int time, bool see_refresh) {
     if(see_refresh) {
         function<double(pair<posX, posY>, pair<posX, posY>)> point_2_point_dist {[](pair<posX, posY> p1, pair<posX, posY> p2){
             return sqrt(
@@ -112,6 +112,9 @@ void Field::calculatePositions(bool see_refresh) {
 
     } else {
 
+        int diff_time = time - parse_time;
+        cout << "Time sinse last position parse: " << diff_time << endl;
+
         // estimate from data received actual 
             //me position
             //other players position
@@ -119,13 +122,13 @@ void Field::calculatePositions(bool see_refresh) {
     }
 }
 
-void Field::parseSee(string const& s) {
-
+void Field::parseSee(int time, string const& s){
     // (name) Direction
     // (name) Distance Direction
     // (name) Distance Direction DistChange 
     // (name) Distance Direction DistChange DirChange
 
+    parse_time = time;
     // now players_position is errased each cycle, must update older data if it´s possible
     players_position = {};
 
@@ -201,5 +204,5 @@ void Field::parseSee(string const& s) {
     }
     
 
-    Field::calculatePositions(true);
+    Field::calculatePositions(parse_time, true);
 }
