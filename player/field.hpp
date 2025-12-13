@@ -48,6 +48,8 @@ public:
     }
     void calculatePositions(int time, bool see_refresh = false);
 
+    
+
     void parseSee(int time, string const& s);
 
 protected:
@@ -66,13 +68,16 @@ private:
 
     inline static Field* instance = nullptr;
 
-    int parse_time;
+    int parse_time = 0;
     tuple<posX, posY, dir> me{0, 0, 0};
 
     vector<pair<string, pair<dist, dir>>> marks_to_this_distance_and_dir; 
     map<string, pair<dist, dir>> players_position;
     pair<dist, dir> ball_position;
 
+    void minPowErr();
+    void triangulationAverage();
+    
     map<string, pair<posX, posY>> flags_positions = {
 
         // Own goal is the reference (x, y)=(0, 0)
@@ -110,7 +115,7 @@ private:
         // Center top to bottom
         {"(f c t)",         {52.5, 34}},
         {"(f c)",         {52.5, 0}},
-        {"(f c b)",         {52.5, 34}},
+        {"(f c b)",         {52.5, -34}},
 
         // Right side penalti box top to bottom        
         {"(f p r t)",         {88.5, 20}},
@@ -161,5 +166,4 @@ private:
         {"(f b r 50)",    {102.5, -39}}
 
     };
-
 };

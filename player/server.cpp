@@ -67,19 +67,19 @@ void Server::getServer(bool debug) {
     string response;
     Field& field = Field::getInstance();
     Player& player = Player::getInstance();
-    if (debug) 
-     response = getServerMessage()->received_message;   
+    if (!debug) 
+        response = getServerMessage()->received_message;   
     else {    
         auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
         response = getServerMessage()->received_message;        
-        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count()/1000000;
+        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count();
         cout << "Message received: " << now - before << endl << response << endl;
     }
     if (response.substr(0, 12) == "(sense_body ") {
         string token;
-        istringstream responseStream(response);
-        getline(responseStream, token, ' ');
-        getline(responseStream, token, ' '); 
+        istringstream timeStream(response);
+        getline(timeStream, token, ' ');
+        getline(timeStream, token, ' '); 
         time = stoi(token);
 
         istringstream responseStream(response);
@@ -88,12 +88,12 @@ void Server::getServer(bool debug) {
         token = "(" + token; // Equals to: "(sense_body Time "
         //TODO: implement player
         player.parseSense_body(time, response.substr(token.size(), response.size()-(token.size()+1)));
-        field.calculatePositions();
+        field.calculatePositions(time);
     } else if (response.substr(0, 5) == "(see ") {
         string token;
-        istringstream responseStream(response);
-        getline(responseStream, token, ' ');
-        getline(responseStream, token, ' '); 
+        istringstream timeStream(response);
+        getline(timeStream, token, ' ');
+        getline(timeStream, token, ' '); 
         time = stoi(token);
 
         istringstream responseStream(response);
@@ -101,12 +101,16 @@ void Server::getServer(bool debug) {
         getline(responseStream, token, '('); 
         token = "(" + token; // Equals to: "(see Time "
         field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
-        getServer();
-    } else {
+        getServer(debug);
+    } else { // The rest
+        // (hear 0 referee kick_off_l)
+        // (hear 39 referee yellow_card_l_1)
+        // (hear 100 referee play_on)
+        // (hear 100 referee drop_ball)
         cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
         cout << "Message received: " << endl << response << endl;
         cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
-        getServer();
+        getServer(debug);
     }
 }
 
