@@ -4,7 +4,6 @@
 #include <player.hpp>
 #include <optional>
 
-const double PI{3.14159265358979323846};
 const int MAX_ITERATIONS{200};
 const double pos_err_convr_min {1e-4};
 const double dir_err_convr_min{1e-6};
@@ -12,35 +11,35 @@ const double dir_err_convr_min{1e-6};
 Field::Field(){
     Player& p = Player::getInstance();
     if (p.getSide() == 'r') {
-        //get<2>(me) =  180;
         for (auto flag:flags_positions)
             flags_positions[flag.first] = {105 - flag.second.first, flag.second.second * -1};
     }
-/*     for (auto flag:flags_positions){
-        cout << flag.first << endl;
-        cout << "flag position: " << flags_positions[flag.first].first << ", " << flags_positions[flag.first].second << endl;
-        cout << "new flag position: " << flags_positions[flag.first].first << ", " << flags_positions[flag.first].second << endl << endl;} */
 };
+
+void Field::setMove(posX x, posY y) {
+    get<0>(me) = x;
+    get<1>(me) = y;
+}
+void Field::setTurn(double dir) {
+    if (get<2>(me).has_value()){
+        get<2>(me) = sum_angles(dir, get<2>(me).value());
+    } else
+        get<2>(me) = dir;
+}
 
 // string without '(see (' and ))eof '(flag) dist dir) ((flag) dir) ... ((flag) ...'
 void Field::calculatePositions(int time, bool see_refresh) {
     if(see_refresh) {
-
         //minPowErr();
         triangulationAverage();
-
-        std::cout << "------------------------------------------\n";
+/*         std::cout << "------------------------------------------\n";
         std::cout << "📍 Mi Posición (me) actualizada:\n";
         std::cout << "   - X: " << std::get<0>(me) << "\n";
         std::cout << "   - Y: " << std::get<1>(me) << "\n";
         std::cout << "   - Dir: " << std::get<2>(me) << "\n";
-        std::cout << "==========================================\n";
-
+        std::cout << "==========================================\n"; */
     } else {
-
         int diff_time = time - parse_time;
-        cout << "Time sinse last position parse: " << diff_time << endl;
-
         // estimate from data received actual 
             //me position
             //other players position
@@ -83,11 +82,11 @@ void Field::triangulationAverage() {
             auto mark_j = marks_to_this_distance_and_dir.at(j);
             for (int k{j+1}; k < marks_to_this_distance_and_dir.size(); k++) {
                 auto mark_k = marks_to_this_distance_and_dir.at(k);
-                double avg_weight_pos = 1/(mark_i.second.first + mark_j.second.first + mark_k.second.first);
+                double avg_weight_pos = 1/(get<0>(mark_i.second).value() + get<0>(mark_j.second).value() + get<0>(mark_k.second).value());
                 acum_avg_weight_pos += avg_weight_pos;
-                optional<pair<posX, posY>> calculated_pos = triangulation(mark_i.second.first, flags_positions.at(mark_i.first), 
-                                                                          mark_j.second.first, flags_positions.at(mark_j.first), 
-                                                                          mark_k.second.first, flags_positions.at(mark_k.first));
+                optional<pair<posX, posY>> calculated_pos = triangulation(get<0>(mark_i.second).value(), flags_positions.at(mark_i.first), 
+                                                                          get<0>(mark_j.second).value(), flags_positions.at(mark_j.first), 
+                                                                          get<0>(mark_k.second).value(), flags_positions.at(mark_k.first));
                 if (calculated_pos)
                     avg_pos = {(calculated_pos->first * avg_weight_pos) + avg_pos.first, (calculated_pos->second * avg_weight_pos) + avg_pos.second};
             }
@@ -102,13 +101,10 @@ void Field::triangulationAverage() {
 
     for (int i{0}; i < marks_to_this_distance_and_dir.size(); i ++) {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
-        double avg_weight_dir = mark_i.second.first;
+        double avg_weight_dir = get<0>(mark_i.second).value();
         acum_avg_weight_dir += avg_weight_dir;
-/*         cout << "me: " << get<0>(me) << ", " << get<1>(me) << " flag" << mark_i.first << ": " << flags_positions.at(mark_i.first).first << ", " << flags_positions.at(mark_i.first).second << endl;
-        cout << "absolute dir flag to player: " << point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) 
-             << " relative angle of player and flag: " << mark_i.second.second << endl;
- */
-        double calculated_dir = point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) - mark_i.second.second;
+
+        double calculated_dir = point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) - get<1>(mark_i.second).value();
 
         avg_dir_x += (cos(calculated_dir*PI/180) * avg_weight_dir);
         avg_dir_y += (sin(calculated_dir*PI/180) * avg_weight_dir);
@@ -129,9 +125,10 @@ void Field::minPowErr() { // No funciona
     function<double(pair<posX, posY>, pair<posX, posY>)> point_2_point_abs_angle {[](pair<posX, posY> p1, pair<posX, posY> p2) {
         return atan2(p2.second - p1.second, p2.first - p1.first);
     }};
+    
     double correction_rate_pos {0.1};
     double correction_rate_dir {0.1};
-    
+
     // min square error multilateration player position calculation
     double err_ant_pos {numeric_limits<double>::max()};        
     double err_ant_dir {numeric_limits<double>::max()};
@@ -154,9 +151,9 @@ void Field::minPowErr() { // No funciona
             //magia negra
             // Position aproximation
             if (err_convr_pos > pos_err_convr_min){      
-                auto const dist_measured {mark.second.first};
+                auto const dist_measured {get<0>(mark.second)};
                 auto const dist_calculated {point_2_point_dist(flags_positions.at(mark.first), {get<0>(me), get<1>(me)})};//markers_positions.at(mark.first), {get<0>(me), get<1>(me)})};
-                double error {dist_measured - dist_calculated};
+                double error {dist_measured.value() - dist_calculated};
                 sum_pow_err_pos += pow(error, 2);
 
                 auto const x_diff {get<0>(me) - flags_positions.at(mark.first).first};
@@ -167,10 +164,10 @@ void Field::minPowErr() { // No funciona
             // Direction aproximation
             if (err_convr_dir > dir_err_convr_min) {                   
                 auto const dir_absolute_estimate {get<2>(me)};
-                auto const dir_partial_measured {mark.second.second};
+                auto const dir_partial_measured {get<1>(mark.second).value()};
                 auto const dir_partial_calculated {point_2_point_abs_angle(flags_positions.at(mark.first), {get<0>(me), get<1>(me)})};
 
-                double error = dir_absolute_estimate - dir_partial_measured - dir_partial_calculated;
+                double error = dir_absolute_estimate.value() - dir_partial_measured - dir_partial_calculated;
                 // Ver como hacerlo correctamente para que de el valor correcto en -180,180
                 sum_pow_err_dir += pow(error, 2);
 
@@ -181,8 +178,8 @@ void Field::minPowErr() { // No funciona
         get<0>(me) += correction_rate_pos * x_delta;
         get<1>(me) += correction_rate_pos * y_delta;
         //cout << "correction_rate_pos: " << correction_rate_pos << " x: " << get<0>(me) << " y: " << get<1>(me) << " delta_x: " << x_delta << "  delta_y: " << y_delta << "  sum_pow_err_pos: " << sum_pow_err_pos << endl;
-        get<2>(me) += correction_rate_dir * dir_delta;
-        get<2>(me) = fmod(get<2>(me), 180);
+        //get<2>(me) += correction_rate_dir * dir_delta;
+        //get<2>(me) = fmod(get<2>(me), 180);
         //cout << "correction_rate_dir: " << correction_rate_dir << "dir: " << get<2>(me) << " delta_dir: " << dir_delta << " sum_pow_err_dir: " << sum_pow_err_dir << endl << endl;
 
         err_convr_pos = abs(err_ant_pos - sum_pow_err_pos);
@@ -199,7 +196,6 @@ void Field::minPowErr() { // No funciona
 
         iterations++; 
     }
-
 }
 
 void Field::parseSee(int time, string const& s){
@@ -221,22 +217,121 @@ void Field::parseSee(int time, string const& s){
         auto data = split(aux.at(1), ' ');
 
         if(flags_positions.find(flag) != flags_positions.end()){
-            if (data.size() >= 2)
-                marks_to_this_distance_and_dir.push_back({flag, {stod(data.at(0)), stod(data.at(1)) * -1}});
+            if (data.size() == 4)
+                marks_to_this_distance_and_dir.push_back(
+                    make_pair(
+                        flag,
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            stod(data.at(3)) * -1
+                        )
+                    )
+                );       
+            else if (data.size() == 3)
+                marks_to_this_distance_and_dir.push_back(
+                    make_pair(
+                        flag,
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            nullopt
+                        )
+                    )
+                );
+            else if (data.size() == 2)
+                marks_to_this_distance_and_dir.push_back(
+                    make_pair(
+                        flag,
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        )
+                    )
+                );            
             else
-                marks_to_this_distance_and_dir.push_back({flag, {-1, stod(data.at(1)) * -1}});
-        
+                marks_to_this_distance_and_dir.push_back(
+                    make_pair(
+                        flag,
+                        make_tuple(
+                            nullopt, 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        )
+                    )
+                );        
         } else if (flag == "(b)"){ //ball
-            if (data.size() >= 2)
-                ball_position = {stod(data.at(0)), stod(data.at(1)) * -1};
-            else
-                ball_position = {-1, stod(data.at(1)) * -1};
+            if (data.size() == 4)
+                ball_position = 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            stod(data.at(3)) * -1
+                        );       
+            else if (data.size() == 3)
+                ball_position = 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            nullopt
+                        );
+            else if (data.size() == 2)
+                ball_position = 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        ); 
+           else
+                ball_position = 
+                        make_tuple(
+                            nullopt, 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        );
         } else {
             // now players_position is errased each cycle, must update older data if it´s possible
-            if (data.size() >= 2)
-                players_position[flag]= {stod(data.at(0)), stod(data.at(1)) * -1};
+            if (data.size() == 4)
+                players_position[flag]= 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            stod(data.at(3)) * -1
+                        );       
+            else if (data.size() == 3)
+                players_position[flag]= 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            stod(data.at(2)), 
+                            nullopt
+                        );
+            else if (data.size() == 2)
+                players_position[flag]= 
+                        make_tuple(
+                            stod(data.at(0)), 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        );            
             else
-                players_position[flag] = {-1, stod(data.at(1)) * -1};
+                players_position[flag]= 
+                        make_tuple(
+                            nullopt, 
+                            stod(data.at(1)) * -1,    
+                            nullopt, 
+                            nullopt
+                        ); 
         }
     }
 /* 

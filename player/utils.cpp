@@ -1,5 +1,6 @@
 #include <utils.hpp>
 
+
 ostream& operator<<(ostream& os, const tuple<string, MinimalSocket::Port, bool>& t) {
     os << "Team Name: " << get<0>(t) << ", Port: " << get<1>(t) << ", Is Goalie: " << (get<2>(t) ? "true" : "false");
     return os;
@@ -102,4 +103,14 @@ vector<string> split(string const& s, char delimiter, function<string(string)> c
     }
     return tokens;
 };
+
+double sum_angles (double ang1, double ang2) {
+    double ang1X = cos(ang1 * PI/180); double ang1Y = sin(ang1 * PI/180);
+    double ang2X = cos(ang2 * PI/180); double ang2Y = sin(ang2 * PI/180);
+
+    return atan2(ang2Y + ang1Y, ang2X + ang1X) * 180/PI;
+}
+double res_angles (double ang1, double ang2){ 
+    return sum_angles(ang1, ang2 *-1);
+}
 

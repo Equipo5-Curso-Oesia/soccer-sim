@@ -9,19 +9,24 @@
 #include <string>
 #include <sstream>
 #include <functional>
+#include <optional>
+#include <tuple>
 
 // This class gather all info respect the elements in the field.
 // It is a singleton class, only a single element is possible
 // This class parse see server info and process positions
 // To access positions getters and setters
 
-typedef double dist;
-// Dir is relative to player sight, 0º means in front of it, looking at him, +900º means in his left, and -90º means in his right 
-typedef double dir;
+using namespace std;
+
+typedef optional<double> dist;
+typedef optional<double> dist_change;
+// Dir is relative to player sight, 0º means in front of it, looking at him, +90º means in his left, and -90º means in his right 
+typedef optional<double> dir;
+typedef optional<double> dir_chage;
 typedef double posX;
 typedef double posY;
-
-using namespace std;
+typedef tuple<dist, dir, dist_change, dir_chage> PosData;
 
 class Field
 {
@@ -38,30 +43,18 @@ public:
     void resetPos() {
         me = {0, 0, 0};
     }
-
-    void setMove(posX x, posY y) {
-        get<0>(me) = x;
-        get<1>(me) = y;
-    }
-    void setTurn(dir dir) {
-        get<2>(me) += dir;
-    }
-    void calculatePositions(int time, bool see_refresh = false);
-
+    void setMove(posX x, posY y);
+    void setTurn(double dir);
     
-
+    void calculatePositions(int time, bool see_refresh = false);
     void parseSee(int time, string const& s);
 
 protected:
 
-//TODO: Crear clase para campo donde se definan todos los puntos y permita calcular las distancias y parsear los datos necesarios. 
-//Tambien contenga los datos de la posicion de los jugadores y la pelota.
 //Tambien que defina las areas importantes y si se está en un area o no.
+// TODO: implementar otro metodo de localizacion mejor.
 
-//TODO: Crear clase Jugador que gestione el jugador y la estrategia
-//Crear una clase que gestione todo lo relacionado con el servidor y la comunicacion
-//TODO: comprobar cual es mi lado del campo y cambiar el origen
-
+//Crear una clase que gestione todo lo relacionado con la comunicacion
 private:
 
     Field();
@@ -71,9 +64,9 @@ private:
     int parse_time = 0;
     tuple<posX, posY, dir> me{0, 0, 0};
 
-    vector<pair<string, pair<dist, dir>>> marks_to_this_distance_and_dir; 
-    map<string, pair<dist, dir>> players_position;
-    pair<dist, dir> ball_position;
+    vector<pair<string, PosData>> marks_to_this_distance_and_dir; 
+    map<string, PosData> players_position;
+    PosData ball_position = {};
 
     void minPowErr();
     void triangulationAverage();
@@ -167,3 +160,4 @@ private:
 
     };
 };
+
