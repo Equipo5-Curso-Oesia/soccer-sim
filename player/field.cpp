@@ -11,16 +11,15 @@ const double dir_err_convr_min{1e-6};
 
 Field::Field(){
     Player& p = Player::getInstance();
-    cout << "playing on side: " << p.getSide() << endl;
     if (p.getSide() == 'r') {
         //get<2>(me) =  180;
         for (auto flag:flags_positions)
             flags_positions[flag.first] = {105 - flag.second.first, flag.second.second * -1};
     }
-    for (auto flag:flags_positions){
+/*     for (auto flag:flags_positions){
         cout << flag.first << endl;
         cout << "flag position: " << flags_positions[flag.first].first << ", " << flags_positions[flag.first].second << endl;
-        cout << "new flag position: " << flags_positions[flag.first].first << ", " << flags_positions[flag.first].second << endl << endl;}
+        cout << "new flag position: " << flags_positions[flag.first].first << ", " << flags_positions[flag.first].second << endl << endl;} */
 };
 
 // string without '(see (' and ))eof '(flag) dist dir) ((flag) dir) ... ((flag) ...'
@@ -105,10 +104,10 @@ void Field::triangulationAverage() {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
         double avg_weight_dir = mark_i.second.first;
         acum_avg_weight_dir += avg_weight_dir;
-        cout << "me: " << get<0>(me) << ", " << get<1>(me) << " flag" << mark_i.first << ": " << flags_positions.at(mark_i.first).first << ", " << flags_positions.at(mark_i.first).second << endl;
+/*         cout << "me: " << get<0>(me) << ", " << get<1>(me) << " flag" << mark_i.first << ": " << flags_positions.at(mark_i.first).first << ", " << flags_positions.at(mark_i.first).second << endl;
         cout << "absolute dir flag to player: " << point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) 
              << " relative angle of player and flag: " << mark_i.second.second << endl;
-
+ */
         double calculated_dir = point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) - mark_i.second.second;
 
         avg_dir_x += (cos(calculated_dir*PI/180) * avg_weight_dir);
@@ -216,9 +215,7 @@ void Field::parseSee(int time, string const& s){
     marks_to_this_distance_and_dir = {}; 
 
     auto marks = split(s.substr(1, s.size()-2), ") (");
-
-    for (auto mark: marks) {
-        
+    for (auto mark: marks) {        
         vector<string> aux = split(mark, ") ");
         string flag = aux.at(0) + ')';
         auto data = split(aux.at(1), ' ');
@@ -283,7 +280,6 @@ void Field::parseSee(int time, string const& s){
             std::cout << "   - ID: " << player.first << ", Distancia: " << player.second.first << ", Dirección: " << player.second.second << "\n";
         }
     }
-   */  
-
+*/
     Field::calculatePositions(parse_time, true);
 }

@@ -72,7 +72,6 @@ int main(int argc, char *argv[])
 
     Player& player = Player::getInstance();
 
-    //cout << "dsffsdsdfsfdfsddfsfsdsdfsdf: " <<player.getSide() << endl;
 
     //sleep(1);
 
@@ -86,7 +85,7 @@ int main(int argc, char *argv[])
     //cout << before << endl;
     while(true){
 
-        server.getServer(true);
+        server.getServer();///* true); */
         player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
         // Aquí va la logica del jugador

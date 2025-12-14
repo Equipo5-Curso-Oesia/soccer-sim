@@ -70,13 +70,9 @@ private:
     GameState game_state = GameState::unknown;
     int time;
 
-    class RecursiveMap;
-    using RecursiveTypeMap = map<string, variant<int, double, string>>;//,unique_ptr<RecursiveMap>>>;
-    class RecursiveMap: public map<string, RecursiveTypeMap> {};
+    map<string, variant<int, double, string>> parseServerMessage(const string& message);
 
-    RecursiveTypeMap parseServerMessage(const string& message);
-
-    RecursiveTypeMap server_params;
-    RecursiveTypeMap player_params;
-    vector<RecursiveTypeMap> player_types;
+    map<string, variant<int, double, string>> server_params;
+    map<string, variant<int, double, string>> player_params;
+    vector<map<string, variant<int, double, string>>> player_types;
 };

@@ -114,10 +114,9 @@ void Server::getServer(bool debug) {
     }
 }
 
-Server::RecursiveTypeMap Server::parseServerMessage(const string& message){
-    // This asume is (key value)()()..() no nested structures
-
-    Server::RecursiveTypeMap parse;
+map<string, variant<int, double, string>> Server::parseServerMessage(const string& message){
+    // This asume is (key value)()()..() no nested structures no multiple values
+    map<string, variant<int, double, string>> parse;
     size_t pos =0;
     while(pos != string::npos && pos < message.size()){
         auto openParPos = message.find('(', pos);
@@ -128,7 +127,7 @@ Server::RecursiveTypeMap Server::parseServerMessage(const string& message){
         try {
             if (count(v.at(1).begin(), v.at(1).end(), '.') == 0 && 
                 count(v.at(1).begin(), v.at(1).end(), 'E') == 0 && 
-                count(v.at(1).begin(), v.at(1).end(), 'E') == 0)
+                count(v.at(1).begin(), v.at(1).end(), 'e') == 0)
                 parse[v.at(0)] = stoi(v.at(1));
             else
                 parse[v.at(0)] = stod(v.at(1));

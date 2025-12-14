@@ -57,5 +57,22 @@ private:
 
     char side;
 
+/*     class RecursiveMap;
+    using RecursiveTypeMap = map<string, variant<int, double, string, vector<variant<int, double, string>>>>;//,unique_ptr<RecursiveMap>>>;
+    class RecursiveMap: public map<string, RecursiveTypeMap> {};
+
+    RecursiveTypeMap parseServerMessage(const string& message); */
+    
+    using ScalarType = variant<int, double, std::string>;
+    using VectorType = vector<ScalarType>;
+    using NestedMap = map<string, variant<optional<int>, pair<int, int>>>;
+    using SenseBodyType = std::variant<
+        ScalarType, // Para tokens.size() == 1
+        VectorType, // Para tokens.size() > 1
+        NestedMap
+    >;
+                            
+    map<string, SenseBodyType> sense_body; 
+
     int parse_time;
 };
