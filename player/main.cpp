@@ -23,34 +23,9 @@ Ejemplode como trabajar con git.
 
 /////////////////////////////////////////////////////////////////////////////////
 */
-// main with three args
 
-/* struct Player
-{
-    int numeroJugador;
-    char lado;
-
-    void parseInit(string msg)
-    {   
-        // ejemplo msg: (init l 2 before_kick_off)
-        size_t pos = msg.find(' ');
-        lado = msg[pos + 1];
-        size_t pos_inicio_numero = msg.find(' ', pos + 1);
-        size_t pos_final_numero = msg.find(' ', pos_inicio_numero + 1);
-        numeroJugador = stoi(msg.substr(pos_inicio_numero + 1, pos_final_numero - pos_inicio_numero - 1) );
-    }
-
-    friend ostream &operator<<(ostream &os, const Player &p)
-    {
-        os << "Soy el " << p.numeroJugador << " y mi lado es " << p.lado;
-        return os;
-    }
-}; */
-
-// main with two args
 int main(int argc, char *argv[])
 {
-    //    tuple<string, int, bool> t [team_name, port, is_goalie];
     string team_name;
     MinimalSocket::Port send_port;
     bool is_goalie;
@@ -76,9 +51,9 @@ int main(int argc, char *argv[])
     //sleep(1);
 
     server.x("(move -34 0)");
-    server.x("(turn 0)"); // el angulo es negativo respecto a nosotros
+    server.x("(turn 50)"); // el angulo es negativo respecto a nosotros
     //server.x("(turn 180)");
-    //server.x("(turn_neck 180)");
+    server.x("(turn_neck -25)");
 
 
     //auto before = chrono::high_resolution_clock::now().time_since_epoch().count();

@@ -7,8 +7,8 @@ team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goa
 void Player::play(){
 
 };
-void Player::parseSense_body(int time, string const& s){
 
+void Player::parseSense_body(int time, string const& s){
     function<ScalarType(string)> conversion{[](string s)-> ScalarType{
         try {
             if (count(s.begin(), s.end(), '.') == 0 && 
@@ -35,11 +35,9 @@ void Player::parseSense_body(int time, string const& s){
 
     for (auto expr: exprs){
         if (expr.find("(", 0) != string::npos) {
-             is_nested = true;
-
+            is_nested = true;
             auto parts = split(expr, " ("); // Only 2 parts should be there
             nested_map_key = parts.at(0);
-
             sense_body[nested_map_key] = NestedMap{};
 
             auto x = split(parts.at(1), ' ');
@@ -155,7 +153,7 @@ void Player::parseSense_body(int time, string const& s){
     }
     std::cout << "=====================================================" << std::endl; */
 };
-    /* 
+/* 
 view_mode high normal
 stamina 8000 1 130600
 speed 0 0

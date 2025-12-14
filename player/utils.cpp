@@ -1,19 +1,13 @@
 #include <utils.hpp>
 
-
-ostream& operator<<(ostream& os, const tuple<string, MinimalSocket::Port, bool>& t) {
-    os << "Team Name: " << get<0>(t) << ", Port: " << get<1>(t) << ", Is Goalie: " << (get<2>(t) ? "true" : "false");
-    return os;
-};
-
 tuple<string, MinimalSocket::Port, bool> parseArgs (int argc, char* argv[]) {
+
     enum class ArgTypes {
         teamName,
         port,
         goalkeeper,
         unknown
     };
-
     function<ArgTypes(string)> hashString{[](string const& str) {
         if (str == "--team-name") return ArgTypes::teamName;
         if (str == "--port") return ArgTypes::port;
@@ -86,11 +80,7 @@ vector<string> split(string const& s, string delimiter) {
 
         pos_ini = pos_end + delimiter_length;
     }
-
-    // 4. Añadir el último token
-    // La subcadena restante (desde pos_inicio hasta el final del string) es el último token.
     tokens.push_back(s.substr(pos_ini));
-
     return tokens;
 }
 

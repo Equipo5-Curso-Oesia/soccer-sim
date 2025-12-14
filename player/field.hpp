@@ -1,3 +1,7 @@
+//Tambien que defina las areas importantes y si se está en un area o no.
+// TODO: implementar otro metodo de localizacion mejor.
+
+//Crear una clase que gestione todo lo relacionado con la comunicacion
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
@@ -31,7 +35,7 @@ typedef tuple<dist, dir, dist_change, dir_chage> PosData;
 class Field
 {
 public:
-
+    // Singleton constructor
     static Field& getInstance() 
     {
         if (!instance)
@@ -40,37 +44,38 @@ public:
     };
     ~Field() = default;
 
+    // Player positioning functions
     void resetPos() {
         me = {0, 0, 0};
     }
     void setMove(posX x, posY y);
     void setTurn(double dir);
     
+    // Positioning functions
     void calculatePositions(int time, bool see_refresh = false);
-    void parseSee(int time, string const& s);
+    void parseSee(int time, string const &s);
 
 protected:
-
-//Tambien que defina las areas importantes y si se está en un area o no.
-// TODO: implementar otro metodo de localizacion mejor.
-
-//Crear una clase que gestione todo lo relacionado con la comunicacion
 private:
 
+    // Singleton vars
     Field();
-
     inline static Field* instance = nullptr;
 
+    // Player pos vars
     int parse_time = 0;
-    tuple<posX, posY, dir> me{0, 0, 0};
+    tuple<posX, posY, dir> me{0, 0, 0}; // Dir is the sum of body dir and head dir
 
+    // Parse vars
     vector<pair<string, PosData>> marks_to_this_distance_and_dir; 
     map<string, PosData> players_position;
     PosData ball_position = {};
 
+    // Positioning algorithms functions
     void minPowErr();
     void triangulationAverage();
-    
+
+    // Harcoded flag pos map
     map<string, pair<posX, posY>> flags_positions = {
 
         // Own goal is the reference (x, y)=(0, 0)
@@ -159,5 +164,7 @@ private:
         {"(f b r 50)",    {102.5, -39}}
 
     };
+    
+    // Private methods
 };
 

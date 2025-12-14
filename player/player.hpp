@@ -11,15 +11,13 @@
 #include <functional>
 #include <MinimalSocket/udp/UdpSocket.h>
 
-
 using namespace std;
-
 // Diferent types of player inherence from here
-
 class Player
 {
 public:
 
+    // Singleton constructor
     static Player& getInstance(string team_name, MinimalSocket::Port player_port, char side, bool is_goalie) noexcept
     {
         if (instance)
@@ -35,44 +33,40 @@ public:
     };
     ~Player() = default;
 
+    // Getter and setter
     char getSide() {
         return side;
     }
 
+    // Player functions form main and other class
     void play();
     void parseSense_body(int time, string const& s);
 
 protected:
-
 private:
-    
+    // Singleton vars
     Player() = default;
     Player(string team_name, int player_number, char side, bool is_goalie);
     inline static Player* instance = nullptr;
 
+    // Basic vars
     string team_name;
-    
     bool is_goalie;
     int player_number;
-
     char side;
-
-/*     class RecursiveMap;
-    using RecursiveTypeMap = map<string, variant<int, double, string, vector<variant<int, double, string>>>>;//,unique_ptr<RecursiveMap>>>;
-    class RecursiveMap: public map<string, RecursiveTypeMap> {};
-
-    RecursiveTypeMap parseServerMessage(const string& message); */
     
+    // Parse vars
     using ScalarType = variant<int, double, std::string>;
     using VectorType = vector<ScalarType>;
     using NestedMap = map<string, variant<optional<int>, pair<int, int>>>;
     using SenseBodyType = std::variant<
-        ScalarType, // Para tokens.size() == 1
-        VectorType, // Para tokens.size() > 1
+        ScalarType, // tokens.size() == 1
+        VectorType, // tokens.size() > 1
         NestedMap
-    >;
-                            
+    >;                    
     map<string, SenseBodyType> sense_body; 
 
     int parse_time;
+
+    // Private methods
 };
