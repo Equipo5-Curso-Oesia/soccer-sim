@@ -1,11 +1,29 @@
 #include <player.hpp>
-#include<utils.hpp>
+#include <utils.hpp>
+#include <server.hpp>
+#include <iomanip>
 
 Player::Player(string team_name, int player_number, char side, bool is_goalie):
 team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{};
 
 void Player::play(){
-
+    switch(test){
+        case(0):
+            move(18.5, 0);
+            break;
+        case(1):
+        case(2):
+        case(3):
+        case(4):
+        case(5):
+        case(6):
+            turn(45);
+            break;
+        default:
+            turn(-45);
+            break;
+    }
+    test++;
 };
 
 void Player::parseSense_body(int time, string const& s){
@@ -207,3 +225,71 @@ focus_point 0 0
 (focus_point 0 0)    
     */
 
+void Player::x(string s) {
+    Server& server = Server::getInstance();
+    server.udp_socket.sendTo(s, server.server_udp);
+    server.getServer(); 
+};
+
+// Once per cycle, only one per cicle
+void Player::turn(double dir, bool override){
+    stringstream ss;
+    ss << fixed << setprecision(3) << ((override) ? dir : dir * -1);
+    x("(turn " + ss.str() + ")");
+};
+
+void Player::turnNeck(double dir, bool override){ // Can be exec in the same cycle as turn, dash, and kick
+    stringstream ss;
+    ss << fixed << setprecision(3) << ((override) ? dir : dir * -1);
+    x("(turn_neck " + ss.str() + ")");
+};
+
+void Player::dash(double power, optional<double> dir, bool is_left, bool is_right, optional<double> powerR, optional<double> dirR, bool override){ // Only power is mandatory // maybe simplificaction
+    // TODO: hay que implementar el sistema bipedo
+    stringstream ss;
+    ss << fixed << setprecision(3) << power;
+    if (dir.has_value())
+        ss << " " << ((override) ? dir.value() : dir.value() * -1);
+    x("(dash " + ss.str() + ")");
+};
+
+void Player::kick(double power, double direction, bool override){
+
+};
+
+void Player::tackle(double powerOrAngle, bool foul, bool override){
+    
+};
+
+void Player::move(double posX, double posY, bool override){ //can be executed only before kick off and after a goal
+    stringstream ss;
+    ss << fixed << setprecision(3) << ((override) ? posX : posX - 52.5)
+                            << " " << ((override) ? posY : posY * -1);
+    x("(move " + ss.str() + ")");
+};
+
+void Player::done(){
+    x("(done)");
+};
+
+// Not once per cycle
+void Player::changeView(int quality, optional<int> width){ // TODO: Hacerlo con enums
+    
+};
+
+void Player::say(string s){
+    
+};
+
+void Player::pointto(double dist, double dir){
+    
+};
+void Player::notPointto(){
+    
+};
+void Player::attentionto(bool our_team, int number){
+    
+};
+void Player::notAttentionto(){
+    
+};

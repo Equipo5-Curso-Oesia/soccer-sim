@@ -68,5 +68,30 @@ private:
 
     int parse_time;
 
-    // Private methods
+    int test = 0;
+
+    // Private methods 
+    void x(string s);
+
+    // Once per cycle, only one per cicle
+    void turn(double dir, bool override = false);
+    void turnNeck(double dir, bool override = false); // Can be exec in the same cycle as turn, dash, and kick
+    void dash(double power, optional<double> dir = nullopt, bool is_left = true, bool is_right = true, optional<double> powerR = nullopt, optional<double> dirR = nullopt, bool override = false); // Only power is mandatory // maybe simplificaction
+    void kick(double power, double direction, bool override = false);
+    void tackle(double powerOrAngle, bool foul, bool override = false);
+    void move(double posX, double posY, bool override = false); //can be executed only before kick off and after a goal
+    void done();
+    // Not once per cycle
+    void changeView(int quality, optional<int> width); // TODO: Hacerlo con enums
+    void say(string s);
+    void pointto(double dist, double dir);
+    void notPointto();
+    void attentionto(bool our_team, int number);
+    void notAttentionto();
+
+    //‘before kick off’ mode, players can turn and move, but they cannot dash
+    //If during a step, several players kick the ball, all the kicks are applied to the ball and a resulting acceleration is calculated. If the resulting acceleration is larger than the maximum acceleration for the ball, acceleration is normalized to its maximum value
+    
 };
+
+//void catchGoalie(double dir, bool override = false); // Only for goalie player

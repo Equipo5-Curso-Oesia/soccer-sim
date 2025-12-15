@@ -50,17 +50,17 @@ int main(int argc, char *argv[])
 
     //sleep(1);
 
-    server.x("(move -34 0)");
-    server.x("(turn 50)"); // el angulo es negativo respecto a nosotros
+    //server.x("(move -34.5 10)");
+    //server.x("(turn 50)"); // el angulo es negativo respecto a nosotros
     //server.x("(turn 180)");
-    server.x("(turn_neck -25)");
+    //server.x("(turn_neck -25)");
 
 
     //auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
     //cout << before << endl;
     while(true){
 
-        server.getServer();///* true); */
+        server.getServer(true);///* true); */
         player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
         // Aquí va la logica del jugador

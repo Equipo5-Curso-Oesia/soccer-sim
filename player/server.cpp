@@ -109,10 +109,34 @@ void Server::getServer(bool debug) {
         field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
         getServer(debug);
     } else { // The rest
+        // Game status and referee msg in 4.7.1.
         // (hear 0 referee kick_off_l)
         // (hear 39 referee yellow_card_l_1)
         // (hear 100 referee play_on)
         // (hear 100 referee drop_ball)
+        // (score Time Our Opp)
+        //(error unknown command) or (error illegal command form)
+        /* 
+        (hear Time Sender “Message”)
+        (hear Time OnlineCoach CoachLanguageMessage)
+            Time ::= simulation cycle of rcssserver
+            Sender ::= online_coach_left | online_coach_right | coach | referee | self | Direction
+            Direction ::= -180 ~ 180 degrees
+            Message ::= string
+            OnlineCoach ::= online_coach_left | online_coach_right
+            CoachLanguageMessage ::= see the standard coach language section 
+        */
+        /*
+        (fullstate Time
+            (pmode {goalie_catch_ball_{l|r}|*PlayMode*})
+            (vmode {high|low} {narrow|normal|wide})
+            (count KickCount DashCount TurnCount CatchCount MoveCount TurnNeckCount ChangeViewCount SayCount)
+            (arm (movable MovableCycles) (expires ExpireCycles)) (target Distance Direction) (count PointtoCount)
+            (score Time Our Opp)
+            ((b) X Y VelX VelY)
+            Players+)
+                Players ::= ((p {l|r} UniformNumber [g] PlayerType) X Y VelX VelY BodyDir NeckDir [PointtoDist PointtoDir] (stamina Stamina Effort Recovery Capacity) [k|t|f] [r|y]))        
+        */
         cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
         cout << "Message received: " << endl << response << endl;
         cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
@@ -152,11 +176,8 @@ std::optional<MinimalSocket::ReceiveStringResult> Server::getServerMessage(){
     return received_message;
 }
 
-void Server::x(string s) {
-    cout << "before: ";
-    getServer();
-    udp_socket.sendTo(s, server_udp);
-    cout << "after: ";
-    getServer();
-    
-};
+
+
+
+
+

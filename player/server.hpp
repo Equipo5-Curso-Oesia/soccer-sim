@@ -41,7 +41,7 @@ public:
     // basura
     std::optional<MinimalSocket::ReceiveStringResult> getServerMessage();
     void getServer(bool debug = false);
-    void x(string s);
+    //void x(string s);
 
 protected:
 private:
@@ -78,4 +78,5 @@ private:
     vector<map<string, variant<int, double, string>>> player_types;
 
     // Private methods
+    friend class Player;
 };
