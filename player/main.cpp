@@ -41,26 +41,15 @@ int main(int argc, char *argv[])
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Server& server = Server::getInstance(team_name, send_port, is_goalie);
-    cout << "Player created successfully" << endl;
-
     Field& field = Field::getInstance();
-
     Player& player = Player::getInstance();
+    // Ver como cambiar de tipo de jugador
 
-
-    //sleep(1);
-
-    //server.x("(move -34.5 10)");
-    //server.x("(turn 50)"); // el angulo es negativo respecto a nosotros
-    //server.x("(turn 180)");
-    //server.x("(turn_neck -25)");
-
-
-    //auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-    //cout << before << endl;
+    cout << "Player created successfully" << endl;
+    
     while(true){
 
-        server.getServer(true);///* true); */
+        server.getServer();///* true); */
         player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
         // Aquí va la logica del jugador

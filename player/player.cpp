@@ -2,29 +2,10 @@
 #include <utils.hpp>
 #include <server.hpp>
 #include <iomanip>
+#include "field.hpp"
 
 Player::Player(string team_name, int player_number, char side, bool is_goalie):
 team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{};
-
-void Player::play(){
-    switch(test){
-        case(0):
-            move(18.5, 0);
-            break;
-        case(1):
-        case(2):
-        case(3):
-        case(4):
-        case(5):
-        case(6):
-            turn(45);
-            break;
-        default:
-            turn(-45);
-            break;
-    }
-    test++;
-};
 
 void Player::parseSense_body(int time, string const& s){
     function<ScalarType(string)> conversion{[](string s)-> ScalarType{
@@ -224,6 +205,37 @@ focus_point 0 0
 (foul (charged 0) (card none)) 
 (focus_point 0 0)    
     */
+
+void Player::play(){
+
+    Field f = Field::getInstance();
+
+    switch(test){
+        case(0):
+            move(18.5, 0);
+            break;
+        case(1):
+        case(2):
+        case(3):
+        case(4):
+        case(5):
+        case(6):
+        case(7):
+        case(8):
+            turn(45);
+            break;
+        case(9):
+            dash(100);
+            break;
+        //case(9):
+        default://|| get<0>(f.getPlayerPos()) < 10
+            turn(45);
+            break;
+        //
+            
+    }
+    test++;
+};
 
 void Player::x(string s) {
     Server& server = Server::getInstance();

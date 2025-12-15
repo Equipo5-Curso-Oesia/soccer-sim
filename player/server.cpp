@@ -108,6 +108,24 @@ void Server::getServer(bool debug) {
         token = "(" + token; // Equals to: "(see Time "
         field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
         getServer(debug);
+    
+    } else if (response.substr(0, 6) == "(hear ") {
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "Message received: " << endl << response << endl;
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        string token;
+        istringstream timeStream(response);
+        getline(timeStream, token, ' ');
+        getline(timeStream, token, ' '); 
+        time = stoi(token);
+
+        token = "(hear " + token + " referee "; // Equals to: "(hear Time referee "
+        auto state = hashString(response.substr(token.size(), response.size()-(token.size()+1)));
+        if (state != GameState::unknown)
+            game_state = state;
+        else {
+            // rest of hear args that are not states from referee
+        }
     } else { // The rest
         // Game status and referee msg in 4.7.1.
         // (hear 0 referee kick_off_l)
@@ -137,9 +155,11 @@ void Server::getServer(bool debug) {
             Players+)
                 Players ::= ((p {l|r} UniformNumber [g] PlayerType) X Y VelX VelY BodyDir NeckDir [PointtoDist PointtoDir] (stamina Stamina Effort Recovery Capacity) [k|t|f] [r|y]))        
         */
-        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
-        cout << "Message received: " << endl << response << endl;
-        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        if (response != "(warning message_not_null_terminated)"){
+            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+            cout << "Message received: " << endl << response << endl;
+            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        }
         getServer(debug);
     }
 }

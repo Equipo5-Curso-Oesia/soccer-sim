@@ -50,6 +50,9 @@ public:
     }
     void setMove(posX x, posY y);
     void setTurn(double dir);
+    tuple<posX, posY, dir> getPlayerPos() {
+        return me;
+    };
     
     // Positioning functions
     void calculatePositions(int time, bool see_refresh = false);

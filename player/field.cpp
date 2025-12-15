@@ -34,12 +34,12 @@ void Field::calculatePositions(int time, bool see_refresh) {
     if(see_refresh) {
         //minPowErr();
         triangulationAverage();
-        std::cout << "------------------------------------------\n";
+/*         std::cout << "------------------------------------------\n";
         std::cout << "📍 Mi Posición (me) actualizada:\n";
         std::cout << "   - X: " << std::get<0>(me) << "\n";
         std::cout << "   - Y: " << std::get<1>(me) << "\n";
         std::cout << "   - Dir: " << std::get<2>(me).value() << "\n";
-        std::cout << "==========================================\n";
+        std::cout << "==========================================\n"; */
     } else {
         int diff_time = time - parse_time;
         // estimate from data received actual 
