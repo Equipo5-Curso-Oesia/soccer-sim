@@ -9,6 +9,7 @@
 #include <utils.hpp>
 #include <field.hpp>
 #include <player.hpp>
+#include <roles.hpp>
 
 Server::Server(string team_name, MinimalSocket::Port player_port, bool is_goalie) noexcept: 
 player_port{player_port},
@@ -36,7 +37,20 @@ server_udp{"127.0.0.1", server_port}, udp_socket{player_port, MinimalSocket::Add
                         stoi(received_message_content.at(2)), 
                         received_message_content.at(1).at(0), 
                         is_goalie);
-
+    // Assign role based on goalie flag; others default to forward/defense by simple rule
+    {
+        Player& p = Player::getInstance();
+        if (is_goalie)
+            p.setRole(std::unique_ptr<Role>(new Goalkeeper()));
+        else {
+            int num = stoi(received_message_content.at(2));
+            // Formation: 1=striker/forward, 2-4=defense, 5-7=midfield, 8-11=forwards
+            if (num >= 2 && num <= 4)
+                p.setRole(std::unique_ptr<Role>(new Defense()));
+            else
+                p.setRole(std::unique_ptr<Role>(new Forward()));
+        }
+    }
     
 
 

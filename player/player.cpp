@@ -3,6 +3,7 @@
 #include <server.hpp>
 #include <iomanip>
 #include "field.hpp"
+#include "roles.hpp"
 
 Player::Player(string team_name, int player_number, char side, bool is_goalie):
 team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{};
@@ -207,34 +208,28 @@ focus_point 0 0
     */
 
 void Player::play(){
+    Server& server = Server::getInstance();
+    Field& f = Field::getInstance();
 
-    Field f = Field::getInstance();
-
-    switch(test){
-        case(0):
-            move(18.5, 0);
-            break;
-        case(1):
-        case(2):
-        case(3):
-        case(4):
-        case(5):
-        case(6):
-        case(7):
-        case(8):
-            turn(45);
-            break;
-        case(9):
-            dash(100);
-            break;
-        //case(9):
-        default://|| get<0>(f.getPlayerPos()) < 10
-            turn(45);
-            break;
-        //
-            
+    if (!initial_positioned) {
+        // Only move on appropriate play modes
+        auto st = server.getState();
+        if (st == Server::GameState::before_kick_off ||
+            st == Server::GameState::kick_off_l ||
+            st == Server::GameState::kick_off_r ||
+            st == Server::GameState::goal_l ||
+            st == Server::GameState::goal_r) {
+            if (role) role->setInitialPosition(*this);
+            initial_positioned = true;
+        }
     }
-    test++;
+
+    if (role) {
+        role->playCycle(*this, server, f);
+    } else {
+        // Fallback simple behavior
+        turn(45);
+    }
 };
 
 void Player::x(string s) {
@@ -305,3 +300,7 @@ void Player::attentionto(bool our_team, int number){
 void Player::notAttentionto(){
     
 };
+
+void Player::setRole(std::unique_ptr<Role> r){
+    role = std::move(r);
+}

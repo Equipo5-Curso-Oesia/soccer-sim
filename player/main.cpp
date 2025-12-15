@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
         {-20, -20}, // Player 8
         {-20, 0},   // Player 9
         {-20, 20},  // Player 10
-        {-50, 0}    // Player 11
+        {-50, 0}    // Player 11 Goalkeeper
     };
     
     int x = posicionInicial[player.numeroJugador - 1][0];

@@ -37,10 +37,21 @@ public:
     char getSide() {
         return side;
     }
+    int getNumber() { return player_number; }
+    bool getIsGoalie() { return is_goalie; }
 
     // Player functions form main and other class
     void play();
     void parseSense_body(int time, string const& s);
+
+    // Role wiring
+    void setRole(std::unique_ptr<class Role> r);
+
+    // Public actions for roles
+    void turn(double dir, bool override = false);
+    void turnNeck(double dir, bool override = false);
+    void dash(double power, optional<double> dir = nullopt, bool is_left = true, bool is_right = true, optional<double> powerR = nullopt, optional<double> dirR = nullopt, bool override = false);
+    void move(double posX, double posY, bool override = false);
 
 protected:
 private:
@@ -54,6 +65,10 @@ private:
     bool is_goalie;
     int player_number;
     char side;
+    bool initial_positioned = false;
+
+    // Role strategy
+    std::unique_ptr<class Role> role;
     
     // Parse vars
     using ScalarType = variant<int, double, std::string>;
@@ -73,13 +88,9 @@ private:
     // Private methods 
     void x(string s);
 
-    // Once per cycle, only one per cicle
-    void turn(double dir, bool override = false);
-    void turnNeck(double dir, bool override = false); // Can be exec in the same cycle as turn, dash, and kick
-    void dash(double power, optional<double> dir = nullopt, bool is_left = true, bool is_right = true, optional<double> powerR = nullopt, optional<double> dirR = nullopt, bool override = false); // Only power is mandatory // maybe simplificaction
+    // Once per cycle, only one per cicle (now public above)
     void kick(double power, double direction, bool override = false);
     void tackle(double powerOrAngle, bool foul, bool override = false);
-    void move(double posX, double posY, bool override = false); //can be executed only before kick off and after a goal
     void done();
     // Not once per cycle
     void changeView(int quality, optional<int> width); // TODO: Hacerlo con enums
