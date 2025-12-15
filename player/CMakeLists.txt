@@ -30,6 +30,7 @@ set(SOURCE_FILES
     utils.cpp
     field.cpp
     player.cpp
+    player_test.cpp
 )
 
 # Create the player executable from source files

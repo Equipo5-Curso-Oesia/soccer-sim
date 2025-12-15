@@ -32,7 +32,7 @@ server_udp{"127.0.0.1", server_port}, udp_socket{player_port, MinimalSocket::Add
 
     received_message_content.at(3).pop_back(); // remove last char ")"
     game_state = hashString(received_message_content.at(3));
-    Player::getInstance(team_name, 
+    Player::getInstance<Player>(team_name, 
                         stoi(received_message_content.at(2)), 
                         received_message_content.at(1).at(0), 
                         is_goalie);
@@ -73,7 +73,7 @@ void Server::getServer(bool debug) {
         // parse see 
     string response;
     Field& field = Field::getInstance();
-    Player& player = Player::getInstance();
+    Player& player = Player::getInstance<Player>();
     if (!debug) 
         response = getServerMessage()->received_message;   
     else {    
@@ -106,13 +106,11 @@ void Server::getServer(bool debug) {
         getline(responseStream, token, '(');
         getline(responseStream, token, '('); 
         token = "(" + token; // Equals to: "(see Time "
-        field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
+
+        if (response != token) // If is not (see Time), not seeing nothing breaks response.substring(...)
+            field.parseSee(time , response.substr(token.size(), response.size()-(token.size()+1)));
         getServer(debug);
-    
     } else if (response.substr(0, 6) == "(hear ") {
-        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
-        cout << "Message received: " << endl << response << endl;
-        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
         string token;
         istringstream timeStream(response);
         getline(timeStream, token, ' ');
@@ -121,9 +119,13 @@ void Server::getServer(bool debug) {
 
         token = "(hear " + token + " referee "; // Equals to: "(hear Time referee "
         auto state = hashString(response.substr(token.size(), response.size()-(token.size()+1)));
-        if (state != GameState::unknown)
+        if (state != GameState::unknown){
             game_state = state;
-        else {
+
+            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+            cout << "State received: " << endl << response.substr(token.size(), response.size()-(token.size()+1)) << endl;
+            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        }else {
             // rest of hear args that are not states from referee
         }
     } else { // The rest

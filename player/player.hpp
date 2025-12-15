@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
@@ -18,18 +19,26 @@ class Player
 public:
 
     // Singleton constructor
-    static Player& getInstance(string team_name, MinimalSocket::Port player_port, char side, bool is_goalie) noexcept
+    template <typename T>
+    static T& getInstance(string team_name, int player_number, char side, bool is_goalie) noexcept
     {
         if (instance)
             throw "you cant create another one";
-        instance = new Player(team_name, player_port, side, is_goalie);    
-        return *instance;
+        instance = new T(team_name, player_number, side, is_goalie);    
+        return static_cast<T&>(*instance); 
     };
-    static Player& getInstance()noexcept
+    template <typename T>
+    static T& getInstance()noexcept
     {
         if (!instance)
             throw "must be correctly inifialzated before";
-        return *instance;  
+        
+        if (typeid(T) != typeid(Player)){ 
+            string team_name = instance->team_name; int player_number = instance->player_number; char side = instance->side; bool is_goalie = instance->is_goalie;
+            delete instance;
+            instance = new T(team_name, player_number, side, is_goalie);
+        }    
+        return static_cast<T&>(*instance);  
     };
     ~Player() = default;
 
@@ -39,7 +48,7 @@ public:
     }
 
     // Player functions form main and other class
-    void play();
+    virtual void play();
     void parseSense_body(int time, string const& s);
 
 protected:
@@ -49,11 +58,13 @@ private:
     Player(string team_name, int player_number, char side, bool is_goalie);
     inline static Player* instance = nullptr;
 
+    friend class PlayerTest;
+
     // Basic vars
     string team_name;
     bool is_goalie;
     int player_number;
-    char side;
+    char side = 'x';
     
     // Parse vars
     using ScalarType = variant<int, double, std::string>;

@@ -2,6 +2,7 @@
 #include <field.hpp>
 #include <utils.hpp>
 #include <player.hpp>
+#include <player_test.hpp>
 
 using namespace std;
 /*
@@ -42,7 +43,9 @@ int main(int argc, char *argv[])
 
     Server& server = Server::getInstance(team_name, send_port, is_goalie);
     Field& field = Field::getInstance();
-    Player& player = Player::getInstance();
+    //Player& player = Player::getInstance();
+    Player& player = Player::getInstance<PlayerTest>();
+
     // Ver como cambiar de tipo de jugador
 
     cout << "Player created successfully" << endl;

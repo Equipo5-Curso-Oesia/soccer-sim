@@ -207,7 +207,6 @@ focus_point 0 0
     */
 
 void Player::play(){
-
     Field f = Field::getInstance();
 
     switch(test){

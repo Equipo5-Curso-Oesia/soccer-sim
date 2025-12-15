@@ -11,7 +11,8 @@ const double pos_err_convr_min {1e-4};
 const double dir_err_convr_min{1e-6};
 
 Field::Field(){
-    Player& p = Player::getInstance();
+    Player& p = Player::getInstance<Player>();
+
     if (p.getSide() == 'r') {
         for (auto flag:flags_positions)
             flags_positions[flag.first] = {105 - flag.second.first, flag.second.second * -1};
