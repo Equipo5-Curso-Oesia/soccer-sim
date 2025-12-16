@@ -34,7 +34,29 @@ void Forward::play(){
     } else if ((s.getState() == Server::GameState::kick_off_l && side == 'l')
                     ||
                 s.getState() == Server::GameState::kick_off_r && side == 'r') { // Saco mi equipo
-        findBall(i, get<1>(f.getBall()));
+        PosData ball = f.getBall();
+
+        if (!get<1>(ball).has_value())
+            findBall(i, get<1>(f.getBall()));
+
+        else if(get<0>(ball).has_value()){
+            if(get<0>(ball).value() < 0.7) {
+
+                if (abs(get<1>(ball).value()) > 10.0) {
+                    turn(get<1>(ball).value());
+                    return;
+                }
+                kick(80, get<1>(ball).value()* -1);
+                return;
+            }
+            if (get<0>(ball).value() < 20.0) {
+                dash(70, get<1>(ball).value());
+                return;
+            }
+            // Track ball by turning toward it
+            turn(get<1>(ball).value());
+            return;
+        }
     } else if ((s.getState() == Server::GameState::kick_off_l && side == 'r')
                     ||
                 s.getState() == Server::GameState::kick_off_r && side == 'l') { // Saca contrario
