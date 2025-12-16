@@ -61,6 +61,7 @@ private:
     inline static Player* instance = nullptr;
 
     friend class PlayerTest;
+    friend class Goalkeeper;
 
     // Basic vars
     string team_name;

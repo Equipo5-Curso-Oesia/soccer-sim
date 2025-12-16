@@ -31,6 +31,7 @@ set(SOURCE_FILES
     field.cpp
     player.cpp
     player_test.cpp
+    goalkeeper.cpp
 )
 
 # Create the player executable from source files
