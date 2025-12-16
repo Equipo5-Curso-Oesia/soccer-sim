@@ -135,8 +135,7 @@ public:
         return game_state;
     };
     
-    // basura
-    std::optional<MinimalSocket::ReceiveStringResult> getServerMessage();
+    std::optional<MinimalSocket::ReceiveStringResult> getServerMessage(bool debug = false);
     
     //void x(string s);
 

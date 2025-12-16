@@ -74,14 +74,9 @@ void Server::getServer(bool debug) {
     string response;
     Field& field = Field::getInstance();
     Player& player = Player::getInstance<Player>();
-    if (!debug) 
-        response = getServerMessage()->received_message;   
-    else {    
-        auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
-        response = getServerMessage()->received_message;        
-        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count();
-        cout << "Message received: " << now - before << endl << response << endl;
-    }
+
+    response = getServerMessage(debug)->received_message;   
+
     if (response.substr(0, 12) == "(sense_body ") {
         string token;
         istringstream timeStream(response);
@@ -197,8 +192,17 @@ map<string, variant<int, double, string>> Server::parseServerMessage(const strin
     return parse;
 }
 
-std::optional<MinimalSocket::ReceiveStringResult> Server::getServerMessage(){
-    auto received_message = udp_socket.receive(message_max_size);
+std::optional<MinimalSocket::ReceiveStringResult> Server::getServerMessage(bool debug){
+
+    std::optional<MinimalSocket::ReceiveStringResult> received_message;
+    if (debug){
+        auto before = chrono::high_resolution_clock::now().time_since_epoch().count();
+        received_message = udp_socket.receive(message_max_size);
+        auto now = (double)chrono::high_resolution_clock::now().time_since_epoch().count();
+        cout << "Message received: " << now - before << endl << received_message->received_message << endl;
+    } else 
+        received_message = udp_socket.receive(message_max_size);
+
     received_message->received_message.pop_back(); // remove last char eof
     return received_message;
 }

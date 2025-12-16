@@ -4,6 +4,7 @@
 #include <player.hpp>
 #include <player_test.hpp>
 #include <goalkeeper.hpp>
+#include <defender.hpp>
 
 using namespace std;
 /*
@@ -44,11 +45,21 @@ int main(int argc, char *argv[])
 
     Server& server = Server::getInstance(team_name, send_port, is_goalie);
     Field& field = Field::getInstance();
-    Player* player = nullptr;
-    if (is_goalie)
-        player = &Player::getInstance<Goalkeeper>();
-    else
-        player = &Player::getInstance<PlayerTest>();
+    Player* player {nullptr};
+    switch(Player::getInstance<Player>().getPlayerNumber()) {
+        case 1: 
+        case 2:
+        case 3:
+        case 4:
+        case 5: //player = Player::getInstance<Forward>(); break;
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10: player = &Player::getInstance<Defender>(); break;
+        default:
+            if (is_goalie) player = &Player::getInstance<Goalkeeper>(); break;
+    }
     
 
     // Ver como cambiar de tipo de jugador

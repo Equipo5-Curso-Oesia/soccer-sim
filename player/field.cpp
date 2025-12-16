@@ -223,6 +223,7 @@ void Field::parseSee(int time, string const& s){
     players_position = {};
 
     marks_to_this_distance_and_dir = {}; 
+    ball_position = {nullopt, nullopt, nullopt, nullopt};
 
     auto marks = split(s.substr(1, s.size()-2), ") (");
     for (auto mark: marks) {        

@@ -53,6 +53,9 @@ public:
     tuple<posX, posY, dir> getPlayerPos() {
         return me;
     };
+    PosData getBall() {
+        return ball_position;
+    }
     
     // Positioning functions
     void calculatePositions(int time, bool see_refresh = false);
@@ -72,7 +75,7 @@ private:
     // Parse vars
     vector<pair<string, PosData>> marks_to_this_distance_and_dir; 
     map<string, PosData> players_position;
-    PosData ball_position = {};
+    PosData ball_position{nullopt, nullopt, nullopt, nullopt};
 
     // Positioning algorithms functions
     void minPowErr();
