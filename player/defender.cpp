@@ -50,7 +50,7 @@ void Defender::play(){
             findBall(i, get<1>(f.getBall()));
 
         else if(get<0>(ball).has_value()){
-            if(get<0>(ball).value() < 0.7) {
+            if(get<0>(ball).value() < 0.7 || get<string>(get<ScalarType>(sense_body["colision"])) == "(ball)") {
 
                 if (abs(get<1>(ball).value()) > 10.0) {
                     turn(get<1>(ball).value());
