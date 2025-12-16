@@ -66,6 +66,7 @@ private:
     friend class PlayerTest;
     friend class Goalkeeper;
     friend class Defender;
+    friend class Forward;
 
     // Basic vars
     string team_name;
