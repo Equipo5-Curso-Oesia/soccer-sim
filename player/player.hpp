@@ -113,7 +113,7 @@ private:
     void turn(double dir, bool override = false);
     void turnNeck(double dir, bool override = false); // Can be exec in the same cycle as turn, dash, and kick
     void dash(double power, optional<double> dir = nullopt, bool is_left = true, bool is_right = true, optional<double> powerR = nullopt, optional<double> dirR = nullopt, bool override = false); // Only power is mandatory // maybe simplificaction
-    void kick(double power, double direction, bool override = false);
+    void kick(double power, double dir, bool override = false);
     void tackle(double powerOrAngle, bool foul, bool override = false);
     void move(double posX, double posY, bool override = false); //can be executed only before kick off and after a goal
     void done();
