@@ -5,7 +5,7 @@
 #include <functional>
 #include <queue>
 
-using Task = function<void()>;
+using Task = std::function<void()>;
 
 void PlayerTest::play(){
 
@@ -35,29 +35,21 @@ void PlayerTest::play(){
 
     }
 
-    #include <queue>
-    #include <iostream>
-    #include <functional>
+    static std::queue<Task> task_queue;
 
-    using Task = function<void()>;
-
-    static queue<Task> task_queue;
-    
-    task_queue.push(bind(turnNeck, this, 10, false)); // hay que añadir todos los argumentos en bind
-    task_queue.push(bind(Player::turn, this, 10, false));
-    task_queue.push(bind(&Player::turn, this, 10, false));
-    task_queue.push(
-        {[this, f]() {
-            cout << "CICLO 3: Ejecutando Dash con poder " << i << endl;
-            this->dash(10); 
-        }}
-    );
+    if (task_queue.empty()) {
+        task_queue.push(std::bind(&Player::turnNeck, this, 10, false));
+        task_queue.push(std::bind(&Player::turn, this, 10, false));
+        task_queue.push(
+            [this, &f]() {
+                cout << "CICLO 3: Ejecutando Dash con poder " << i << endl;
+                this->dash(10); 
+            }
+        );
+    }
 
     Task next_task = task_queue.front();
-    // Ejecutar la tarea (llama a la función enlazada)
-    //next_task(this); 
     next_task(); 
-    // Eliminar la tarea ejecutada
     task_queue.pop();
 
 };
