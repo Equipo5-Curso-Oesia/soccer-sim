@@ -48,6 +48,9 @@ public:
     char getSide() {
         return side;
     }
+    int getPlayerNumber() {
+        return player_number;
+    }
 
     // Player functions form main and other class
     virtual void play();
@@ -62,6 +65,7 @@ private:
 
     friend class PlayerTest;
     friend class Goalkeeper;
+    friend class Defender;
 
     // Basic vars
     string team_name;

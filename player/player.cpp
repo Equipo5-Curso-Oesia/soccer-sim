@@ -209,6 +209,8 @@ focus_point 0 0
 void Player::play(){
     Field f = Field::getInstance();
 
+    cout << "esfsdfsdsdf" << endl;
+
     switch(test){
         case(0):
             move(18.5, 0);
