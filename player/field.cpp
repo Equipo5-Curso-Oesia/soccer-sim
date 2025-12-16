@@ -6,6 +6,9 @@
 #include <player.hpp>
 #include <optional>
 
+#include <cmath>
+#include <limits>
+
 const int MAX_ITERATIONS{200};
 const double pos_err_convr_min {1e-4};
 const double dir_err_convr_min{1e-6};
@@ -24,6 +27,7 @@ void Field::setMove(posX x, posY y) {
     get<1>(me) = y;
 }
 void Field::setTurn(double dir) {
+    if (!std::isfinite(dir)) return;
     if (get<2>(me).has_value()){
         get<2>(me) = sum_angles(dir, get<2>(me).value());
     } else
@@ -77,45 +81,95 @@ void Field::triangulationAverage() {
 
     double acum_avg_weight_pos{0};
     pair<posX, posY> avg_pos{0, 0};
+    int used_pos_solutions{0};
+
+    const posX prev_x = get<0>(me);
+    const posY prev_y = get<1>(me);
+    const std::optional<double> prev_dir = get<2>(me);
 
     for (int i{0}; i < marks_to_this_distance_and_dir.size(); i ++) {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
-        if (!get<0>(mark_i.second).has_value()) continue;
+        if (!get<0>(mark_i.second).has_value() || !std::isfinite(get<0>(mark_i.second).value())) continue;
         for (int j{i+1}; j < marks_to_this_distance_and_dir.size(); j++) {
             auto mark_j = marks_to_this_distance_and_dir.at(j);
-            if (!get<0>(mark_j.second).has_value()) continue;
+            if (!get<0>(mark_j.second).has_value() || !std::isfinite(get<0>(mark_j.second).value())) continue;
             for (int k{j+1}; k < marks_to_this_distance_and_dir.size(); k++) {
                 auto mark_k = marks_to_this_distance_and_dir.at(k);
-                if (!get<0>(mark_k.second).has_value()) continue;
-                double avg_weight_pos = 1/(get<0>(mark_i.second).value() + get<0>(mark_j.second).value() + get<0>(mark_k.second).value());
+                if (!get<0>(mark_k.second).has_value() || !std::isfinite(get<0>(mark_k.second).value())) continue;
+                const double di = get<0>(mark_i.second).value();
+                const double dj = get<0>(mark_j.second).value();
+                const double dk = get<0>(mark_k.second).value();
+                const double denom = di + dj + dk;
+                if (!(denom > 0.0) || !std::isfinite(denom)) continue;
+
+                double avg_weight_pos = 1.0 / denom;
                 acum_avg_weight_pos += avg_weight_pos;
-                optional<pair<posX, posY>> calculated_pos = triangulation(get<0>(mark_i.second).value(), flags_positions.at(mark_i.first), 
-                                                                          get<0>(mark_j.second).value(), flags_positions.at(mark_j.first), 
-                                                                          get<0>(mark_k.second).value(), flags_positions.at(mark_k.first));
-                if (calculated_pos)
+                optional<pair<posX, posY>> calculated_pos = triangulation(di, flags_positions.at(mark_i.first),
+                                                                          dj, flags_positions.at(mark_j.first),
+                                                                          dk, flags_positions.at(mark_k.first));
+                if (calculated_pos && std::isfinite(calculated_pos->first) && std::isfinite(calculated_pos->second)) {
                     avg_pos = {(calculated_pos->first * avg_weight_pos) + avg_pos.first, (calculated_pos->second * avg_weight_pos) + avg_pos.second};
+                    used_pos_solutions++;
+                }
             }
         }
     }
-    get<0>(me) = avg_pos.first/acum_avg_weight_pos;
-    get<1>(me) = avg_pos.second/acum_avg_weight_pos;
+
+    // Not enough valid data: keep previous estimate.
+    if (used_pos_solutions <= 0 || !(acum_avg_weight_pos > 0.0) || !std::isfinite(acum_avg_weight_pos)) {
+        get<0>(me) = prev_x;
+        get<1>(me) = prev_y;
+        get<2>(me) = prev_dir;
+        return;
+    }
+
+    const double new_x = avg_pos.first / acum_avg_weight_pos;
+    const double new_y = avg_pos.second / acum_avg_weight_pos;
+    if (!std::isfinite(new_x) || !std::isfinite(new_y)) {
+        get<0>(me) = prev_x;
+        get<1>(me) = prev_y;
+        get<2>(me) = prev_dir;
+        return;
+    }
+
+    get<0>(me) = new_x;
+    get<1>(me) = new_y;
 
     double acum_avg_weight_dir{0};
     double avg_dir_x{0};
     double avg_dir_y{0};
 
+    int used_dir_marks{0};
+
     for (int i{0}; i < marks_to_this_distance_and_dir.size(); i ++) {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
+        if (!get<0>(mark_i.second).has_value() || !get<1>(mark_i.second).has_value()) continue;
+        if (!std::isfinite(get<0>(mark_i.second).value()) || !std::isfinite(get<1>(mark_i.second).value())) continue;
+
         double avg_weight_dir = get<0>(mark_i.second).value();
+        if (!(avg_weight_dir > 0.0) || !std::isfinite(avg_weight_dir)) continue;
         acum_avg_weight_dir += avg_weight_dir;
 
         double calculated_dir = point_2_point_abs_angle({get<0>(me), get<1>(me)}, flags_positions.at(mark_i.first)) - get<1>(mark_i.second).value();
+        if (!std::isfinite(calculated_dir)) continue;
 
         avg_dir_x += (cos(calculated_dir*PI/180) * avg_weight_dir);
         avg_dir_y += (sin(calculated_dir*PI/180) * avg_weight_dir);
+        used_dir_marks++;
     }
 
-    get<2>(me) = atan2(avg_dir_y, avg_dir_x)*(180/PI);
+    if (used_dir_marks <= 0 || !(acum_avg_weight_dir > 0.0) ||
+        (!std::isfinite(avg_dir_x) || !std::isfinite(avg_dir_y))) {
+        get<2>(me) = prev_dir;
+        return;
+    }
+
+    const double new_dir = atan2(avg_dir_y, avg_dir_x) * (180 / PI);
+    if (!std::isfinite(new_dir)) {
+        get<2>(me) = prev_dir;
+        return;
+    }
+    get<2>(me) = new_dir;
 }
 
 void Field::minPowErr() { // No funciona

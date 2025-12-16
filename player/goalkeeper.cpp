@@ -41,6 +41,10 @@ double normalizeDeg(double a) {
     return a;
 }
 
+bool isFinite(double v) {
+    return std::isfinite(v);
+}
+
 bool isInOurPenaltyArea(double x, double y) {
     return (x >= 0.0 && x <= kPenaltyAreaMaxX && std::abs(y) <= kPenaltyAreaHalfY);
 }
@@ -93,13 +97,16 @@ void Goalkeeper::play(){
         // Estimar la posición absoluta del balón (en coordenadas de Field) si es posible.
         const auto [px, py, pdirOpt] = f.getPlayerPos();
         std::optional<std::pair<double, double>> ballAbs;
-        if (ballDist.has_value() && pdirOpt.has_value()) {
+        if (ballDist.has_value() && ballDir.has_value() && pdirOpt.has_value() &&
+            isFinite(ballDist.value()) && isFinite(ballDir.value()) && isFinite(pdirOpt.value())) {
             const double theta = (pdirOpt.value() + ballDir.value()) * (PI / 180.0);
             ballAbs = {px + ballDist.value() * std::cos(theta), py + ballDist.value() * std::sin(theta)};
         }
 
-        // Si el balón es pateabl, despejar fuerte.
-        if (ballDist.has_value() && ballDist.value() <= kKickableDist) {
+        // Si el balón es pateable, despejar fuerte. NECESITAMOS ballDir y ballDist.
+        if (ballDist.has_value() && ballDir.has_value() &&
+            isFinite(ballDist.value()) && isFinite(ballDir.value()) &&
+            ballDist.value() <= kKickableDist) {
             if (std::abs(ballDir.value()) > 10.0) {
                 turn(ballDir.value());
             } else {
@@ -110,7 +117,8 @@ void Goalkeeper::play(){
         }
 
         // Atrapar cuando el balón está en nuestra área de penalti y suficientemente cerca.
-        if (ballDist.has_value() && ballAbs.has_value()) {
+        if (ballDist.has_value() && ballDir.has_value() && ballAbs.has_value() &&
+            isFinite(ballDist.value()) && isFinite(ballDir.value())) {
             const double bx = ballAbs->first;
             const double by = ballAbs->second;
 
@@ -122,8 +130,14 @@ void Goalkeeper::play(){
                 }
 
                 // Comando `catch` (solo para portero). Misma convención de signo que `turn`.
+                const double catchMoment = normalizeDeg(-ballDir.value());
+                if (!isFinite(catchMoment)) {
+                    turn(20);
+                    i++;
+                    return;
+                }
                 std::stringstream ss;
-                ss << std::fixed << std::setprecision(3) << (ballDir.value() * -1);
+                ss << std::fixed << std::setprecision(3) << clamp(catchMoment, -180.0, 180.0);
                 x("(catch " + ss.str() + ")");
                 i++;
                 return;
@@ -131,7 +145,8 @@ void Goalkeeper::play(){
         }
 
         // Si el balón está en nuestra área de penalti y aún no es atrapable, perseguirlo (pero quedarse dentro del área).
-        if (ballDist.has_value() && ballAbs.has_value()) {
+        if (ballDist.has_value() && ballDir.has_value() && ballAbs.has_value() &&
+            isFinite(ballDist.value()) && isFinite(ballDir.value())) {
             const double bx = ballAbs->first;
             const double by = ballAbs->second;
             if (isInOurPenaltyArea(bx, by) && ballDist.value() <= kChaseDist) {
@@ -162,7 +177,10 @@ void Goalkeeper::play(){
             }
         }
 
-        turn(ballDir.value());
+        // Fallback: girar hacia el balón solo si sabemos su dirección
+        if (ballDir.has_value()) {
+            turn(ballDir.value());
+        }
         i++;
         return;
     }

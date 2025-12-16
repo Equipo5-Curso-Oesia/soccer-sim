@@ -38,9 +38,9 @@ void Defender::play(){
     } else if ((s.getState() == Server::GameState::kick_off_l && side == 'r')
                     ||
                 s.getState() == Server::GameState::kick_off_r && side == 'l') { // Saca contrario
-
         findBall(i, get<1>(f.getBall()));
     } else if (s.getState() == Server::GameState::drop_ball) { // EL balon está en juego si en 100 ciclos el equipo que le toca sacar no la ha tocado o cualquiera la ha tocado posteriormente
+        findBall(i, get<1>(f.getBall()));
 
     } else if (s.getState() == Server::GameState::play_on) { // El partido está en marcha
 
@@ -49,7 +49,8 @@ void Defender::play(){
         if (!get<1>(ball).has_value())
             findBall(i, get<1>(f.getBall()));
 
-        else if(get<0>(ball).has_value()){
+        // Necesitamos AMBOS: distancia Y dirección para actuar
+        else if(get<0>(ball).has_value() && get<1>(ball).has_value()){
             if(get<0>(ball).value() < 0.7 || get<string>(get<ScalarType>(sense_body["colision"])) == "(ball)") {
 
                 if (abs(get<1>(ball).value()) > 10.0) {

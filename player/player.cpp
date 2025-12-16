@@ -4,8 +4,42 @@
 #include <iomanip>
 #include "field.hpp"
 
+#include <cmath>
+
+namespace {
+
+constexpr double kMinMomentDeg = -180.0;
+constexpr double kMaxMomentDeg = 180.0;
+
+constexpr double kMinDashPower = -100.0;
+constexpr double kMaxDashPower = 100.0;
+
+constexpr double kMinKickPower = -100.0;
+constexpr double kMaxKickPower = 100.0;
+
+constexpr double kMaxMoveX = 52.5;
+constexpr double kMaxMoveY = 34.0;
+
+inline bool isFinite(const double v) {
+    return std::isfinite(v);
+}
+
+inline double clamp(const double v, const double lo, const double hi) {
+    return (v < lo) ? lo : (v > hi) ? hi : v;
+}
+
+inline double clampMomentDeg(double v) {
+    if (!isFinite(v)) return 0.0;
+    return clamp(v, kMinMomentDeg, kMaxMomentDeg);
+}
+
+} // namespace
+
 Player::Player(string team_name, int player_number, char side, bool is_goalie):
-team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{};
+team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{
+    // Evita accesos tempranos a una clave no inicializada (p.ej. defender usa sense_confirmado["colision"]).
+    sense_body["colision"] = std::string("none");
+}
 
 void Player::parseSense_body(int time, string const& s){
     function<ScalarType(string)> conversion{[](string s)-> ScalarType{
@@ -252,29 +286,40 @@ void Player::x(string s) {
 
 // Once per cycle, only one per cicle
 void Player::turn(double dir, bool override){
+    if (!isFinite(dir)) return;
+    const double moment = clampMomentDeg((override) ? dir : (dir * -1.0));
     stringstream ss;
-    ss << fixed << setprecision(3) << ((override) ? dir : dir * -1);
+    ss << fixed << setprecision(3) << moment;
     x("(turn " + ss.str() + ")");
 };
 
 void Player::turnNeck(double dir, bool override){ // Can be exec in the same cycle as turn, dash, and kick
+    if (!isFinite(dir)) return;
+    const double moment = clampMomentDeg((override) ? dir : (dir * -1.0));
     stringstream ss;
-    ss << fixed << setprecision(3) << ((override) ? dir : dir * -1);
+    ss << fixed << setprecision(3) << moment;
     x("(turn_neck " + ss.str() + ")");
 };
 
 void Player::dash(double power, optional<double> dir, bool is_left, bool is_right, optional<double> powerR, optional<double> dirR, bool override){ // Only power is mandatory // maybe simplificaction
     // TODO: hay que implementar el sistema bipedo
+    if (!isFinite(power)) return;
+    const double clampedPower = clamp(power, kMinDashPower, kMaxDashPower);
     stringstream ss;
-    ss << fixed << setprecision(3) << power;
-    if (dir.has_value())
-        ss << " " << ((override) ? dir.value() : dir.value() * -1);
+    ss << fixed << setprecision(3) << clampedPower;
+    if (dir.has_value() && isFinite(dir.value())) {
+        const double moment = clampMomentDeg((override) ? dir.value() : (dir.value() * -1.0));
+        ss << " " << moment;
+    }
     x("(dash " + ss.str() + ")");
 };
 
 void Player::kick(double power, double dir, bool override){
+    if (!isFinite(power) || !isFinite(dir)) return;
+    const double clampedPower = clamp(power, kMinKickPower, kMaxKickPower);
+    const double moment = clampMomentDeg((override) ? dir : (dir * -1.0));
     stringstream ss;
-    ss << fixed << setprecision(3) << power << " " << ((override) ? dir : dir * -1);
+    ss << fixed << setprecision(3) << clampedPower << " " << moment;
     x("(kick " + ss.str() + ")");
 };
 
@@ -283,9 +328,14 @@ void Player::tackle(double powerOrAngle, bool foul, bool override){
 };
 
 void Player::move(double posX, double posY, bool override){ //can be executed only before kick off and after a goal
+    if (!isFinite(posX) || !isFinite(posY)) return;
+    const double xFinal = (override) ? posX : (posX - 52.5);
+    const double yFinal = (override) ? posY : (posY * -1.0);
     stringstream ss;
-    ss << fixed << setprecision(3) << ((override) ? posX : posX - 52.5)
-                            << " " << ((override) ? posY : posY * -1);
+    ss << fixed << setprecision(3)
+       << clamp(xFinal, -kMaxMoveX, kMaxMoveX)
+       << " "
+       << clamp(yFinal, -kMaxMoveY, kMaxMoveY);
     x("(move " + ss.str() + ")");
 };
 
