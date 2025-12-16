@@ -1,5 +1,7 @@
 #include <player.hpp>
 
+#include <optional>
+
 using namespace std;
 
 class Goalkeeper : public Player
@@ -14,6 +16,8 @@ public:
 
 protected:
 private:
+
+    void findBall(int i, optional<double> ballDir);
     
     // Singleton vars
     Goalkeeper() : Player(){};
