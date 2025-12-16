@@ -9,6 +9,8 @@ using Task = std::function<void()>;
 
 void Goalkeeper::play(){
 
+    cout << "Goalkeeper playing" << endl;
+
     Server& s = Server::getInstance();
     Field& f = Field::getInstance();
 

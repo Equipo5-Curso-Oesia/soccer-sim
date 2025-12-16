@@ -3,6 +3,7 @@
 #include <utils.hpp>
 #include <player.hpp>
 #include <player_test.hpp>
+#include <goalkeeper.hpp>
 
 using namespace std;
 /*
@@ -43,8 +44,12 @@ int main(int argc, char *argv[])
 
     Server& server = Server::getInstance(team_name, send_port, is_goalie);
     Field& field = Field::getInstance();
-    //Player& player = Player::getInstance();
-    Player& player = Player::getInstance<PlayerTest>();
+    Player* player = nullptr;
+    if (is_goalie)
+        player = &Player::getInstance<Goalkeeper>();
+    else
+        player = &Player::getInstance<PlayerTest>();
+    
 
     // Ver como cambiar de tipo de jugador
 
@@ -53,7 +58,7 @@ int main(int argc, char *argv[])
     while(true){
 
         server.getServer();///* true); */
-        player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
+        player->play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
         // Aquí va la logica del jugador
         // La logica devuelve la accion/acciones a enviar al servidor
