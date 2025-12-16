@@ -21,7 +21,6 @@ private:
 
     friend class Player;
     
-
     
 };
 

@@ -128,6 +128,7 @@ public:
         // --- Default / Error ---
         return GameState::unknown;
     }};
+    void gameStateController(GameState state);
     GameState getState() {
         return game_state;
     };

@@ -120,7 +120,7 @@ void Server::getServer(bool debug) {
         token = "(hear " + token + " referee "; // Equals to: "(hear Time referee "
         auto state = hashString(response.substr(token.size(), response.size()-(token.size()+1)));
         if (state != GameState::unknown){
-            game_state = state;
+            gameStateController(state);
 
             cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
             cout << "State received: " << endl << response.substr(token.size(), response.size()-(token.size()+1)) << endl;
@@ -164,6 +164,11 @@ void Server::getServer(bool debug) {
         }
         getServer(debug);
     }
+}
+
+void Server::gameStateController(GameState state)
+{
+    game_state = state;
 }
 
 map<string, variant<int, double, string>> Server::parseServerMessage(const string& message){
