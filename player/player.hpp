@@ -20,18 +20,20 @@ public:
 
     // Singleton constructor
     template <typename T>
-    static T& getInstance(string team_name, int player_number, char side, bool is_goalie) noexcept
+    static T& getInstance(string team_name, int player_number, char side, bool is_goalie)
     {
-        if (instance)
-            throw "you cant create another one";
+        if (instance) {
+            throw std::logic_error("Player instance already exists");
+        }
         instance = new T(team_name, player_number, side, is_goalie);    
         return static_cast<T&>(*instance); 
     };
     template <typename T>
-    static T& getInstance()noexcept
+    static T& getInstance()
     {
-        if (!instance)
-            throw "must be correctly inifialzated before";
+        if (!instance) {
+            throw std::logic_error("Player must be initialized before use");
+        }
         
         if (typeid(T) != typeid(Player)){ 
             string team_name = instance->team_name; int player_number = instance->player_number; char side = instance->side; bool is_goalie = instance->is_goalie;
@@ -59,6 +61,7 @@ private:
     inline static Player* instance = nullptr;
 
     friend class PlayerTest;
+    friend class Goalkeeper;
 
     // Basic vars
     string team_name;

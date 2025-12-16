@@ -10,7 +10,7 @@
 #include <field.hpp>
 #include <player.hpp>
 
-Server::Server(string team_name, MinimalSocket::Port player_port, bool is_goalie) noexcept: 
+Server::Server(string team_name, MinimalSocket::Port player_port, bool is_goalie): 
 player_port{player_port},
 server_udp{"127.0.0.1", server_port}, udp_socket{player_port, MinimalSocket::AddressFamily::IP_V6}
 {

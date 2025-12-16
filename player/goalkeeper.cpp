@@ -1,4 +1,4 @@
-#include <player_test.hpp>
+#include <goalkeeper.hpp>
 #include <server.hpp>
 #include <field.hpp>
 #include <iostream>
@@ -7,7 +7,9 @@
 
 using Task = std::function<void()>;
 
-void PlayerTest::play(){
+void Goalkeeper::play(){
+
+    cout << "Goalkeeper playing" << endl;
 
     Server& s = Server::getInstance();
     Field& f = Field::getInstance();

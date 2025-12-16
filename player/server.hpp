@@ -22,17 +22,19 @@ class Server
 {
 public:
     // Singleton constructor
-    static Server& getInstance(string team_name, MinimalSocket::Port player_port, bool is_goalie) noexcept
+    static Server& getInstance(string team_name, MinimalSocket::Port player_port, bool is_goalie)
     {
-        if (instance)
-            throw "you cant create another one";
+        if (instance) {
+            throw std::logic_error("Server instance already exists");
+        }
         instance = new Server(team_name, player_port, is_goalie);        
         return *instance;
     };
-    static Server& getInstance()noexcept
+    static Server& getInstance()
     {
-        if (!instance)
-            throw "must be correctly inifialzated before";
+        if (!instance) {
+            throw std::logic_error("Server must be initialized before use");
+        }
         return *instance;
     };
     ~Server() = default;
@@ -141,7 +143,7 @@ public:
 protected:
 private:
     // Singleton vars
-    Server(string team_name, MinimalSocket::Port player_port,  bool is_goalie) noexcept;
+    Server(string team_name, MinimalSocket::Port player_port,  bool is_goalie);
     inline static Server* instance = nullptr;
     
     // Connection vars
