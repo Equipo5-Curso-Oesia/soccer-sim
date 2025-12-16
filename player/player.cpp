@@ -241,7 +241,7 @@ void Player::play(){
 void Player::x(string s) {
     Server& server = Server::getInstance();
     server.udp_socket.sendTo(s, server.server_udp);
-    server.getServer(); 
+    server.getServer(true); 
 };
 
 // Once per cycle, only one per cicle
