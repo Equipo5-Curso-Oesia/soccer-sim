@@ -30,7 +30,9 @@ set(SOURCE_FILES
     utils.cpp
     field.cpp
     player.cpp
-    roles.cpp
+    goalkeeper.cpp
+    defense.cpp
+    forward.cpp
 )
 
 # Create the player executable from source files

@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
@@ -18,20 +19,16 @@ class Player
 public:
 
     // Singleton constructor
-    static Player& getInstance(string team_name, MinimalSocket::Port player_port, char side, bool is_goalie) noexcept
+    static Player& getInstance(string team_name, MinimalSocket::Port player_port, char side, bool is_goalie);
+    static Player& getInstance() noexcept
     {
-        if (instance)
-            throw "you cant create another one";
-        instance = new Player(team_name, player_port, side, is_goalie);    
+        if (!instance){
+            std::cerr << "Player must be initialized before use" << std::endl;
+            std::terminate();
+        }
         return *instance;
     };
-    static Player& getInstance()noexcept
-    {
-        if (!instance)
-            throw "must be correctly inifialzated before";
-        return *instance;  
-    };
-    ~Player() = default;
+    virtual ~Player() = default;
 
     // Getter and setter
     char getSide() {
@@ -41,17 +38,17 @@ public:
     bool getIsGoalie() { return is_goalie; }
 
     // Player functions form main and other class
-    void play();
+    virtual void play();
     void parseSense_body(int time, string const& s);
-
-    // Role wiring
-    void setRole(std::unique_ptr<class Role> r);
 
     // Public actions for roles
     void turn(double dir, bool override = false);
     void turnNeck(double dir, bool override = false);
     void dash(double power, optional<double> dir = nullopt, bool is_left = true, bool is_right = true, optional<double> powerR = nullopt, optional<double> dirR = nullopt, bool override = false);
+    void kick(double power, double direction, bool override = false);
     void move(double posX, double posY, bool override = false);
+    double attackDirection() const { return (side == 'l') ? 0.0 : 180.0; }
+    void moveToInitial();
 
 protected:
 private:
@@ -66,9 +63,6 @@ private:
     int player_number;
     char side;
     bool initial_positioned = false;
-
-    // Role strategy
-    std::unique_ptr<class Role> role;
     
     // Parse vars
     using ScalarType = variant<int, double, std::string>;
@@ -89,7 +83,6 @@ private:
     void x(string s);
 
     // Once per cycle, only one per cicle (now public above)
-    void kick(double power, double direction, bool override = false);
     void tackle(double powerOrAngle, bool foul, bool override = false);
     void done();
     // Not once per cycle

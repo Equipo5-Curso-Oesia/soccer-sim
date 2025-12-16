@@ -52,6 +52,9 @@ int main(int argc, char *argv[])
         server.getServer();///* true); */
         player.play(); // Los argumentos los hace creando objetos de field y server y haciendo getter y setters correspondientes
 
+        // In synch_see mode the server advances after receiving (done)
+        server.sendDone();
+
         // Aquí va la logica del jugador
         // La logica devuelve la accion/acciones a enviar al servidor
 

@@ -3,10 +3,28 @@
 #include <server.hpp>
 #include <iomanip>
 #include "field.hpp"
-#include "roles.hpp"
+#include "goalkeeper.hpp"
+#include "defense.hpp"
+#include "forward.hpp"
 
 Player::Player(string team_name, int player_number, char side, bool is_goalie):
 team_name{team_name}, player_number{player_number}, side{side}, is_goalie{is_goalie}{};
+// Factory: instantiate subclass per role
+Player& Player::getInstance(string team_name, MinimalSocket::Port player_port, char side, bool is_goalie) {
+    if (instance) {
+        std::cerr << "Player singleton already created" << std::endl;
+        std::terminate();
+    }
+    int num = player_port; // player_port param actually passes player number from server
+    if (is_goalie) {
+        instance = new GoalkeeperPlayer(team_name, num, side, is_goalie);
+    } else if (num >= 2 && num <= 4) {
+        instance = new DefensePlayer(team_name, num, side, is_goalie);
+    } else {
+        instance = new ForwardPlayer(team_name, num, side, is_goalie);
+    }
+    return *instance;
+}
 
 void Player::parseSense_body(int time, string const& s){
     function<ScalarType(string)> conversion{[](string s)-> ScalarType{
@@ -209,33 +227,15 @@ focus_point 0 0
 
 void Player::play(){
     Server& server = Server::getInstance();
-    Field& f = Field::getInstance();
-
-    if (!initial_positioned) {
-        // Only move on appropriate play modes
-        auto st = server.getState();
-        if (st == Server::GameState::before_kick_off ||
-            st == Server::GameState::kick_off_l ||
-            st == Server::GameState::kick_off_r ||
-            st == Server::GameState::goal_l ||
-            st == Server::GameState::goal_r) {
-            if (role) role->setInitialPosition(*this);
-            initial_positioned = true;
-        }
-    }
-
-    if (role) {
-        role->playCycle(*this, server, f);
-    } else {
-        // Fallback simple behavior
-        turn(45);
-    }
+    moveToInitial();
+    // Default simple fallback if no subclass override
+    turn(15);
 };
 
 void Player::x(string s) {
     Server& server = Server::getInstance();
     server.udp_socket.sendTo(s, server.server_udp);
-    server.getServer(); 
+    // Don't call getServer() here - let main loop handle message receipt
 };
 
 // Once per cycle, only one per cicle
@@ -261,7 +261,11 @@ void Player::dash(double power, optional<double> dir, bool is_left, bool is_righ
 };
 
 void Player::kick(double power, double direction, bool override){
-
+    stringstream ss;
+    ss << fixed << setprecision(3) << power << " " << ((override) ? direction : direction * -1);
+    string cmd = "(kick " + ss.str() + ")";
+    cout << "KICK CMD: " << cmd << endl;
+    x(cmd);
 };
 
 void Player::tackle(double powerOrAngle, bool foul, bool override){
@@ -301,6 +305,55 @@ void Player::notAttentionto(){
     
 };
 
-void Player::setRole(std::unique_ptr<Role> r){
-    role = std::move(r);
+void Player::moveToInitial(){
+    if (initial_positioned) return;
+    Server& server = Server::getInstance();
+    auto st = server.getState();
+    // Per protocol: (move) is available only in before_kick_off and after a goal.
+    if (st != Server::GameState::before_kick_off &&
+        st != Server::GameState::kick_off_l &&
+        st != Server::GameState::kick_off_r &&
+        st != Server::GameState::goal_l &&
+        st != Server::GameState::goal_r) {
+        return;
+    }
+
+    // Formation is defined in server-centered coordinates for the left team.
+    // Right-side team is mirrored to stay in its own half.
+    double x = -20.0;
+    double y = 0.0;
+
+    switch(player_number){
+        case 1: x = -50.0; y =  0.0; break; // goalkeeper-ish
+        case 2: x = -40.0; y = -20.0; break;
+        case 3: x = -40.0; y =  0.0; break;
+        case 4: x = -40.0; y =  20.0; break;
+        case 5: x = -30.0; y = -30.0; break;
+        case 6: x = -30.0; y =  0.0; break;
+        case 7: x = -30.0; y =  30.0; break;
+        case 8: x = -20.0; y = -20.0; break;
+        case 9: x = -20.0; y =  0.0; break;
+        case 10: x = -20.0; y =  20.0; break;
+        case 11: x = -50.0; y =  0.0; break;
+        default: x = -20.0; y =  0.0; break;
+    }
+
+    // Put the kickoff taker close enough to kick immediately.
+    // Keep within our half: slightly inside the center line.
+    if (player_number == 9 &&
+        (st == Server::GameState::before_kick_off ||
+         (st == Server::GameState::kick_off_l && side == 'l') ||
+         (st == Server::GameState::kick_off_r && side == 'r'))) {
+        x = -0.5;
+        y = 0.0;
+    }
+
+    if (side == 'r') {
+        x = -x;
+        y = -y;
+    }
+
+    // This project uses an internal x-offset and y-flip inside Player::move().
+    move(x + 52.5, -y);
+    initial_positioned = true;
 }

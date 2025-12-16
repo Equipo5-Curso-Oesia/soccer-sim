@@ -6,6 +6,7 @@
 #include <map>
 #include <variant>
 #include <vector>
+#include <optional>
 #include <string>
 #include <sstream>
 #include <functional>
@@ -22,22 +23,29 @@ class Server
 {
 public:
     // Singleton constructor
-    static Server& getInstance(string team_name, MinimalSocket::Port player_port, bool is_goalie) noexcept
+    static Server& getInstance(string team_name, MinimalSocket::Port player_port, bool is_goalie)
     {
-        if (instance)
-            throw "you cant create another one";
+        if (instance){
+            std::cerr << "Server singleton already created" << std::endl;
+            std::terminate();
+        }
         instance = new Server(team_name, player_port, is_goalie);        
         return *instance;
     };
-    static Server& getInstance()noexcept
+    static Server& getInstance() noexcept
     {
-        if (!instance)
-            throw "must be correctly inifialzated before";
+        if (!instance){
+            std::cerr << "Server must be initialized before use" << std::endl;
+            std::terminate();
+        }
         return *instance;
     };
     ~Server() = default;
 
     void getServer(bool debug = false);
+
+    bool isSynchSeeEnabled() const { return synch_see_enabled; }
+    void sendDone();
 
     // Game state functions
     enum class GameState {
@@ -151,9 +159,15 @@ private:
     MinimalSocket::Address server_udp;
     MinimalSocket::udp::Udp<true> udp_socket;
 
+    // If we receive a game message while still initializing, stash it here so
+    // the first call to getServer() consumes it.
+    std::optional<MinimalSocket::ReceiveStringResult> pending_message;
+
     // Game state vars
     GameState game_state = GameState::unknown;
     int time;
+
+    bool synch_see_enabled = false;
 
     // Parse function
     map<string, variant<int, double, string>> parseServerMessage(const string& message);

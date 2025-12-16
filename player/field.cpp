@@ -77,25 +77,32 @@ void Field::triangulationAverage() {
     double acum_avg_weight_pos{0};
     pair<posX, posY> avg_pos{0, 0};
 
-    for (int i{0}; i < marks_to_this_distance_and_dir.size(); i ++) {
+    for (int i{0}; i < (int)marks_to_this_distance_and_dir.size(); i ++) {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
         if (!get<0>(mark_i.second).has_value()) continue;
-        for (int j{i+1}; j < marks_to_this_distance_and_dir.size(); j++) {
+        for (int j{i+1}; j < (int)marks_to_this_distance_and_dir.size(); j++) {
             auto mark_j = marks_to_this_distance_and_dir.at(j);
             if (!get<0>(mark_j.second).has_value()) continue;
-            for (int k{j+1}; k < marks_to_this_distance_and_dir.size(); k++) {
+            for (int k{j+1}; k < (int)marks_to_this_distance_and_dir.size(); k++) {
                 auto mark_k = marks_to_this_distance_and_dir.at(k);
                 if (!get<0>(mark_k.second).has_value()) continue;
                 double avg_weight_pos = 1/(get<0>(mark_i.second).value() + get<0>(mark_j.second).value() + get<0>(mark_k.second).value());
-                acum_avg_weight_pos += avg_weight_pos;
                 optional<pair<posX, posY>> calculated_pos = triangulation(get<0>(mark_i.second).value(), flags_positions.at(mark_i.first), 
                                                                           get<0>(mark_j.second).value(), flags_positions.at(mark_j.first), 
                                                                           get<0>(mark_k.second).value(), flags_positions.at(mark_k.first));
-                if (calculated_pos)
+                if (calculated_pos) {
+                    acum_avg_weight_pos += avg_weight_pos;
                     avg_pos = {(calculated_pos->first * avg_weight_pos) + avg_pos.first, (calculated_pos->second * avg_weight_pos) + avg_pos.second};
+                }
             }
         }
     }
+
+    if (acum_avg_weight_pos <= 0) {
+        // Not enough valid information to triangulate.
+        return;
+    }
+
     get<0>(me) = avg_pos.first/acum_avg_weight_pos;
     get<1>(me) = avg_pos.second/acum_avg_weight_pos;
 
@@ -103,8 +110,9 @@ void Field::triangulationAverage() {
     double avg_dir_x{0};
     double avg_dir_y{0};
 
-    for (int i{0}; i < marks_to_this_distance_and_dir.size(); i ++) {
+    for (int i{0}; i < (int)marks_to_this_distance_and_dir.size(); i ++) {
         auto mark_i = marks_to_this_distance_and_dir.at(i);
+        if (!get<0>(mark_i.second).has_value() || !get<1>(mark_i.second).has_value()) continue;
         double avg_weight_dir = get<0>(mark_i.second).value();
         acum_avg_weight_dir += avg_weight_dir;
 
@@ -112,6 +120,10 @@ void Field::triangulationAverage() {
 
         avg_dir_x += (cos(calculated_dir*PI/180) * avg_weight_dir);
         avg_dir_y += (sin(calculated_dir*PI/180) * avg_weight_dir);
+    }
+
+    if (acum_avg_weight_dir <= 0) {
+        return;
     }
 
     get<2>(me) = atan2(avg_dir_y, avg_dir_x)*(180/PI);
@@ -221,13 +233,36 @@ void Field::parseSee(int time, string const& s){
     // now players_position is errased each cycle, must update older data if it´s possible
     players_position = {};
 
-    marks_to_this_distance_and_dir = {}; 
+    marks_to_this_distance_and_dir = {};
 
-    auto marks = split(s.substr(1, s.size()-2), ") (");
-    for (auto mark: marks) {        
-        vector<string> aux = split(mark, ") ");
-        string flag = aux.at(0) + ')';
-        auto data = split(aux.at(1), ' ');
+    if (s.size() < 2) {
+        Field::calculatePositions(parse_time, true);
+        return;
+    }
+
+    string inner = s;
+    if (!inner.empty() && inner.front() == '(' && inner.back() == ')') {
+        inner = inner.substr(1, inner.size() - 2);
+    }
+    if (inner.empty()) {
+        Field::calculatePositions(parse_time, true);
+        return;
+    }
+
+    auto marks = split(inner, ") (");
+    for (auto mark: marks) {
+        // Each entry is typically like: "(b) 10 20" or "(f t l 50) 30 -10"
+        // but we must handle cases without data gracefully.
+        auto close = mark.find(") ");
+        if (close == string::npos) {
+            // No data part.
+            continue;
+        }
+        string flag = mark.substr(0, close + 1);
+        string rest = mark.substr(close + 2);
+        if (rest.empty()) continue;
+        auto data = split(rest, ' ');
+        if (data.empty()) continue;
 
         if(flags_positions.find(flag) != flags_positions.end()){
             marks_to_this_distance_and_dir.push_back(
@@ -285,4 +320,16 @@ void Field::parseSee(int time, string const& s){
     }
 */
     Field::calculatePositions(parse_time, true);
+}
+
+std::optional<double> Field::getBallDist() const {
+    if (get<0>(ball_position).has_value())
+        return get<0>(ball_position).value();
+    return std::nullopt;
+}
+
+std::optional<double> Field::getBallDir() const {
+    if (get<1>(ball_position).has_value())
+        return get<1>(ball_position).value();
+    return std::nullopt;
 }

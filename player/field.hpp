@@ -1,3 +1,4 @@
+#pragma once
 //Tambien que defina las areas importantes y si se está en un area o no.
 // TODO: implementar otro metodo de localizacion mejor.
 
@@ -57,6 +58,10 @@ public:
     // Positioning functions
     void calculatePositions(int time, bool see_refresh = false);
     void parseSee(int time, string const &s);
+
+    // Accessors
+    std::optional<double> getBallDist() const;
+    std::optional<double> getBallDir() const;
 
 protected:
 private:
