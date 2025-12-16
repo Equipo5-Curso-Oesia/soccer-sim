@@ -11,7 +11,6 @@ public:
 
     void play() override;
 
-
 protected:
 private:
     
@@ -20,6 +19,9 @@ private:
     Forward(string team_name, int player_number, char side, bool is_goalie) : Player(team_name, player_number, side, is_goalie){};
 
     friend class Player;
+
+    void findBall(int i, optional<double> ballDir);
+    void goHome();
     
     
 };
