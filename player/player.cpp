@@ -35,7 +35,6 @@ void Player::parseSense_body(int time, string const& s){
     for (auto expr: exprs){
 
         if (expr.substr(0, 10) == "collision "){
-            cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: " << endl;
             sense_body["colision"] = expr.substr(10, expr.size());
             break;
         }
@@ -249,7 +248,6 @@ void Player::x(string s) {
     cout << "command to server: " << s << endl;
     server.udp_socket.sendTo(s, server.server_udp);
     server.getServer(true); 
-    cout << "hfgfghfghhfgghfhfgfghghf" << endl;
 };
 
 // Once per cycle, only one per cicle
@@ -274,8 +272,10 @@ void Player::dash(double power, optional<double> dir, bool is_left, bool is_righ
     x("(dash " + ss.str() + ")");
 };
 
-void Player::kick(double power, double direction, bool override){
-
+void Player::kick(double power, double dir, bool override){
+    stringstream ss;
+    ss << fixed << setprecision(3) << power << " " << ((override) ? dir : dir * -1);
+    x("(kick " + ss.str() + ")");
 };
 
 void Player::tackle(double powerOrAngle, bool foul, bool override){

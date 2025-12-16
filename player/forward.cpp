@@ -11,7 +11,7 @@ void Forward::play(){
 
     cout << "Forward playing" << endl;
 
-    Server& s = Server::getInstance();
+/*     Server& s = Server::getInstance();
     Field& f = Field::getInstance();
 
     static int i = 0;
@@ -63,6 +63,6 @@ void Forward::play(){
 
     Task next_task = task_queue.front();
     next_task(); 
-    task_queue.pop();
+    task_queue.pop(); */
 
 };

@@ -10,7 +10,7 @@ using Task = std::function<void()>;
 
 void Defender::play(){
 
-    cout << endl << endl;
+    cout << endl;
 
     Server& s = Server::getInstance();
     Field& f = Field::getInstance();
@@ -46,8 +46,6 @@ void Defender::play(){
 
         PosData ball = f.getBall();
 
-        cout << "posicion del balon: " << get<0>(ball).value_or(-999) << ", " << get<1>(ball).value_or(-666) << endl;
-
         if (!get<1>(ball).has_value())
             findBall(i, get<1>(f.getBall()));
 
@@ -58,7 +56,7 @@ void Defender::play(){
                     turn(get<1>(ball).value());
                     return;
                 }
-                //kick(80, get<1>(ball).value());
+                kick(80, get<1>(ball).value()* -1);
                 return;
             }
             if (get<0>(ball).value() < 20.0) {
@@ -68,7 +66,7 @@ void Defender::play(){
             // Track ball by turning toward it
             turn(get<1>(ball).value());
             return;
-        } else cout << "bmnbnmbnmbnmnmbnbmbnmbnmbnmbnm" << endl;
+        }
     }
 
     i++;
