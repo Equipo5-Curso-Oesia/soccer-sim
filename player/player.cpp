@@ -33,6 +33,12 @@ void Player::parseSense_body(int time, string const& s){
     string nested_map_key;
 
     for (auto expr: exprs){
+
+        if (expr.substr(0, 10) == "collision "){
+            cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: " << endl;
+            sense_body["colision"] = expr.substr(10, expr.size());
+            break;
+        }
         if (expr.find("(", 0) != string::npos) {
             is_nested = true;
             auto parts = split(expr, " ("); // Only 2 parts should be there
@@ -240,8 +246,10 @@ void Player::play(){
 
 void Player::x(string s) {
     Server& server = Server::getInstance();
+    cout << "command to server: " << s << endl;
     server.udp_socket.sendTo(s, server.server_udp);
     server.getServer(true); 
+    cout << "hfgfghfghhfgghfhfgfghghf" << endl;
 };
 
 // Once per cycle, only one per cicle

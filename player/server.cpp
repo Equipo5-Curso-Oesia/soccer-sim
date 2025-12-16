@@ -87,7 +87,7 @@ void Server::getServer(bool debug) {
         istringstream responseStream(response);
         getline(responseStream, token, '(');
         getline(responseStream, token, '('); 
-        token = "(" + token; // Equals to: "(sense_body Time "
+        token = "(" + token; // Equals to: "(sense_body Time "        
         player.parseSense_body(time, response.substr(token.size(), response.size()-(token.size()+1)));
         field.calculatePositions(time);
     } else if (response.substr(0, 5) == "(see ") {
@@ -152,11 +152,9 @@ void Server::getServer(bool debug) {
             Players+)
                 Players ::= ((p {l|r} UniformNumber [g] PlayerType) X Y VelX VelY BodyDir NeckDir [PointtoDist PointtoDir] (stamina Stamina Effort Recovery Capacity) [k|t|f] [r|y]))        
         */
-        if (response != "(warning message_not_null_terminated)"){
-            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
-            cout << "Message received: " << endl << response << endl;
-            cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
-        }
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "Message received: " << endl << response << endl;
+        cout << "-----------------------------------------------------------------------------------------------------------------" << endl;
         getServer(debug);
     }
 }
