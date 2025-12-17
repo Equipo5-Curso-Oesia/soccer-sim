@@ -10,8 +10,6 @@ using Task = std::function<void()>;
 
 void Defender::play(){
 
-    cout << endl;
-
     Server& s = Server::getInstance();
     Field& f = Field::getInstance();
 

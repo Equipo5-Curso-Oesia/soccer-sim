@@ -10,8 +10,6 @@ using Task = std::function<void()>;
 
 void Forward::play(){
 
-    cout << endl << endl;
-
     Server& s = Server::getInstance();
     Field& f = Field::getInstance();
 

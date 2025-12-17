@@ -14,7 +14,6 @@ void PlayerTest::play(){
 
     static int i = 0;
     if (s.getState() == Server::GameState::before_kick_off){ // Antes del saque
-        cout << i << endl;
         turn(20);
         i++;
     } else if ((s.getState() == Server::GameState::kick_off_l && side == 'l')

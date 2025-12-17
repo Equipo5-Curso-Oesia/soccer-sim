@@ -248,8 +248,6 @@ focus_point 0 0
 void Player::play(){
     Field f = Field::getInstance();
 
-    cout << "esfsdfsdsdf" << endl;
-
     switch(test){
         case(0):
             move(18.5, 0);
@@ -279,7 +277,7 @@ void Player::play(){
 
 void Player::x(string s) {
     Server& server = Server::getInstance();
-    cout << "command to server: " << s << endl;
+    //cout << "command to server: " << s << endl;
     server.udp_socket.sendTo(s, server.server_udp);
     server.getServer(true); 
 };
