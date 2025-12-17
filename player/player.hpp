@@ -128,7 +128,7 @@ private:
 
     //‘before kick off’ mode, players can turn and move, but they cannot dash
     //If during a step, several players kick the ball, all the kicks are applied to the ball and a resulting acceleration is calculated. If the resulting acceleration is larger than the maximum acceleration for the ball, acceleration is normalized to its maximum value
-    
+    void findBall(int i, optional<double> ballDir);
 };
 
 //void catchGoalie(double dir, bool override = false); // Only for goalie player

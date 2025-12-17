@@ -277,7 +277,7 @@ void Player::play(){
 
 void Player::x(string s) {
     Server& server = Server::getInstance();
-    //cout << "command to server: " << s << endl;
+    cout << "command to server: " << s << endl;
     server.udp_socket.sendTo(s, server.server_udp);
     server.getServer(true); 
 };
@@ -361,4 +361,19 @@ void Player::attentionto(bool our_team, int number){
 };
 void Player::notAttentionto(){
     
+};
+
+void Player::findBall(int i, optional<double> ballDir)
+{
+    if (i % 3 == 0)
+    {
+        if (ballDir.has_value())
+        {
+            turn(ballDir.value());
+        }
+        else
+        {
+            turn(20);
+        }
+    }
 };

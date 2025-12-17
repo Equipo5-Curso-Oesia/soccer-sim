@@ -38,7 +38,6 @@ void PlayerTest::play(){
 
     if (task_queue.empty()) {
         task_queue.push(std::bind(&Player::turnNeck, this, 10, false));
-        task_queue.push(std::bind(&Player::turn, this, 10, false));
         task_queue.push(
             [this, &f]() {
                 cout << "CICLO 3: Ejecutando Dash con poder " << i << endl;
