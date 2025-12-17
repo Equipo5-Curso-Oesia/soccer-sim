@@ -9,9 +9,7 @@
 #include <cmath>
 #include <limits>
 
-const int MAX_ITERATIONS{200};
-const double pos_err_convr_min {1e-4};
-const double dir_err_convr_min{1e-6};
+
 
 Field::Field(){
     Player& p = Player::getInstance<Player>();
@@ -37,14 +35,15 @@ void Field::setTurn(double dir) {
 // string without '(see (' and ))eof '(flag) dist dir) ((flag) dir) ... ((flag) ...'
 void Field::calculatePositions(int time, bool see_refresh) {
     if(see_refresh) {
-        //minPowErr();
-        triangulationAverage();
-/*         std::cout << "------------------------------------------\n";
+        minPowErr();
+        //triangulationAverage();
+        
+        std::cout << "------------------------------------------\n";
         std::cout << "📍 Mi Posición (me) actualizada:\n";
         std::cout << "   - X: " << std::get<0>(me) << "\n";
         std::cout << "   - Y: " << std::get<1>(me) << "\n";
         std::cout << "   - Dir: " << std::get<2>(me).value() << "\n";
-        std::cout << "==========================================\n"; */
+        std::cout << "==========================================\n";
     } else {
         int diff_time = time - parse_time;
         // estimate from data received actual 
@@ -182,8 +181,16 @@ void Field::minPowErr() { // No funciona
         );
     }};
     function<double(pair<posX, posY>, pair<posX, posY>)> point_2_point_abs_angle {[](pair<posX, posY> p1, pair<posX, posY> p2) {
-        return atan2(p2.second - p1.second, p2.first - p1.first);
+        return atan2(
+            p2.second 
+            - 
+            p1.second, p2.first - p1.first
+        );
     }};
+
+    const int MAX_ITERATIONS{200};
+    const double pos_err_convr_min {1e-4};
+    const double dir_err_convr_min{1e-6};
     
     double correction_rate_pos {0.1};
     double correction_rate_dir {0.1};
@@ -206,49 +213,53 @@ void Field::minPowErr() { // No funciona
         double y_delta {0};
         double sum_pow_err_dir {0};
         double dir_delta {0};
+
         for(auto const& mark : marks_to_this_distance_and_dir) {
-            //magia negra
-            // Position aproximation
-            if (err_convr_pos > pos_err_convr_min){      
-                auto const dist_measured {get<0>(mark.second)};
-                auto const dist_calculated {point_2_point_dist(flags_positions.at(mark.first), {get<0>(me), get<1>(me)})};//markers_positions.at(mark.first), {get<0>(me), get<1>(me)})};
-                double error {dist_measured.value() - dist_calculated};
-                sum_pow_err_pos += pow(error, 2);
+            auto const& flag_pos = flags_positions.at(mark.first);
+            double my_x = get<0>(me);
+            double my_y = get<1>(me);
 
-                auto const x_diff {get<0>(me) - flags_positions.at(mark.first).first};
-                x_delta += (error / dist_calculated) * x_diff;
-                auto const y_diff {get<1>(me) - flags_positions.at(mark.first).second};
-                y_delta += (error / dist_calculated) * y_diff;
-            } else {x_delta = 0; y_delta = 0;}                 
-            // Direction aproximation
-            if (err_convr_dir > dir_err_convr_min) {                   
-                auto const dir_absolute_estimate {get<2>(me)};
-                auto const dir_partial_measured {get<1>(mark.second).value()};
-                auto const dir_partial_calculated {point_2_point_abs_angle(flags_positions.at(mark.first), {get<0>(me), get<1>(me)})};
+            double dist_calc = point_2_point_dist(flag_pos, {my_x, my_y});
+            double dist_meas = get<0>(mark.second).value();
+            double dist_err = dist_meas - dist_calc; // Positivo si estoy más cerca de lo que debería
 
-                double error = dir_absolute_estimate.value() - dir_partial_measured - dir_partial_calculated;
-                // Ver como hacerlo correctamente para que de el valor correcto en -180,180
-                sum_pow_err_dir += pow(error, 2);
+            double ux = (my_x - flag_pos.first) / (dist_calc + 1e-6);
+            double uy = (my_y - flag_pos.second) / (dist_calc + 1e-6);
 
-                auto const dir_diff {error};
-                dir_delta -= (error / (dir_partial_measured + dir_partial_calculated)) * dir_diff;
-            } else {dir_delta = 0;}
+            x_delta += dist_err * ux; 
+            y_delta += dist_err * uy;
+            sum_pow_err_pos += dist_err * dist_err;
+
+
+
+            double current_dir = get<2>(me).value(); 
+            double relative_meas = get<1>(mark.second).value();
+
+            double angle_to_mark_deg = point_2_point_abs_angle({my_x, my_y}, flag_pos) * (180.0 / M_PI);
+
+            double dir_err = angle_to_mark_deg - (current_dir + relative_meas);
+            
+            while (dir_err > 180.0)  dir_err -= 360.0;
+            while (dir_err < -180.0) dir_err += 360.0;
+
+            dir_delta += dir_err; 
+            sum_pow_err_dir += dir_err * dir_err;
+
+
         }
         get<0>(me) += correction_rate_pos * x_delta;
         get<1>(me) += correction_rate_pos * y_delta;
-        //cout << "correction_rate_pos: " << correction_rate_pos << " x: " << get<0>(me) << " y: " << get<1>(me) << " delta_x: " << x_delta << "  delta_y: " << y_delta << "  sum_pow_err_pos: " << sum_pow_err_pos << endl;
-        //get<2>(me) += correction_rate_dir * dir_delta;
-        //get<2>(me) = fmod(get<2>(me), 180);
-        //cout << "correction_rate_dir: " << correction_rate_dir << "dir: " << get<2>(me) << " delta_dir: " << dir_delta << " sum_pow_err_dir: " << sum_pow_err_dir << endl << endl;
+
+        double avg_dir_delta = dir_delta / marks_to_this_distance_and_dir.size();
+        double new_dir = get<2>(me).value() + (correction_rate_dir * avg_dir_delta);
+
+        while (new_dir > 180.0)  new_dir -= 360.0;
+        while (new_dir < -180.0) new_dir += 360.0;
+        get<2>(me) = new_dir;
+
 
         err_convr_pos = abs(err_ant_pos - sum_pow_err_pos);
         err_convr_dir = abs(err_ant_dir - sum_pow_err_dir);
-
-        // Dynamic correction rate adjust, if error rate is larger than last iteration, oscilation is ocurring and correction rate reduced
-        /* if(sum_pow_err_pos > err_ant_pos)
-            correction_rate_pos *= (err_ant_pos/sum_pow_err_pos > 0.0001) ?(err_ant_pos/sum_pow_err_pos) : 0.0001;
-        if(sum_pow_err_dir > err_ant_dir)
-            correction_rate_dir *= (err_ant_dir/sum_pow_err_dir > 0.0001) ? (err_ant_dir/sum_pow_err_dir) : 0.0001; */
 
         err_ant_pos = sum_pow_err_pos;
         err_ant_dir = sum_pow_err_dir;

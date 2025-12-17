@@ -47,11 +47,11 @@ int main(int argc, char *argv[])
     Field& field = Field::getInstance();
     Player* player {nullptr};
     switch(Player::getInstance<Player>().getPlayerNumber()) {
-        case 1: 
+        case 1: //player = &Player::getInstance<PlayerTest>(); break;
         case 2:
         case 3:
         case 4:
-        case 5: //player = Player::getInstance<Forward>(); break;
+        case 5: //player = &Player::getInstance<Forward>(); break;
         case 6:
         case 7:
         case 8:

@@ -191,59 +191,6 @@ void Player::parseSense_body(int time, string const& s){
     }
     std::cout << "=====================================================" << std::endl; */
 };
-/* 
-view_mode high normal
-stamina 8000 1 130600
-speed 0 0
-head_angle 0
-kick 0
-dash 0
-turn 1
-say 0
-turn_neck 0
-catch 0
-move 1
-change_view 0
-change_focus 0
-arm (movable 0
-    expires 0
-    target 0 0
-    count 0)
-
-focus (target none
-    count 0)
-
-tackle (expires 0
-    count 0)
-
-collision none
-
-foul (charged 0
-    card none)
-
-focus_point 0 0
-
-
-
-(view_mode high normal) 
-(stamina 8000 1 130600) 
-(speed 0 0) 
-(head_angle 0) 
-(kick 0) (dash 0) 
-(turn 1) 
-(say 0) 
-(turn_neck 0) 
-(catch 0) 
-(move 1) 
-(change_view 0) 
-(change_focus 0) 
-(arm (movable 0) (expires 0) (target 0 0) (count 0)) 
-(focus (target none) (count 0)) 
-(tackle (expires 0) (count 0)) 
-(collision none) 
-(foul (charged 0) (card none)) 
-(focus_point 0 0)    
-    */
 
 void Player::play(){
     Field f = Field::getInstance();
@@ -279,7 +226,7 @@ void Player::x(string s) {
     Server& server = Server::getInstance();
     cout << "command to server: " << s << endl;
     server.udp_socket.sendTo(s, server.server_udp);
-    server.getServer(true); 
+    //server.getServer();//true); 
 };
 
 // Once per cycle, only one per cicle

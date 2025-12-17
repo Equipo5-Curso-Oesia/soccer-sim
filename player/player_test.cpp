@@ -14,7 +14,8 @@ void PlayerTest::play(){
 
     static int i = 0;
     if (s.getState() == Server::GameState::before_kick_off){ // Antes del saque
-        turn(20);
+        if(i == 0) move(20, 0);
+        if (i%30 == 15) turn(20);
         i++;
     } else if ((s.getState() == Server::GameState::kick_off_l && side == 'l')
                     ||
@@ -34,7 +35,7 @@ void PlayerTest::play(){
 
     }
 
-    static std::queue<Task> task_queue;
+/*     static std::queue<Task> task_queue;
 
     if (task_queue.empty()) {
         task_queue.push(std::bind(&Player::turnNeck, this, 10, false));
@@ -48,6 +49,6 @@ void PlayerTest::play(){
 
     Task next_task = task_queue.front();
     next_task(); 
-    task_queue.pop();
+    task_queue.pop(); */
 
 };
