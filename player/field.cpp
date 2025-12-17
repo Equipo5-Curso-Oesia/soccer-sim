@@ -266,10 +266,11 @@ void Field::parseSee(int time, string const& s){
     function<PosData(vector<string>&)> posMakeTuple{[](vector<string> &data)
     {
         return make_tuple(
-            (data.size()< 2)? optional<double>{} : stod(data.at(0)),
-            (data.size()< 2)? stod(data.at(0)) * -1 : stod(data.at(1)) * -1,
-            (data.size()< 3)? optional<double>{} : stod(data.at(2)),
-            (data.size()< 4)? optional<double>{} : (stod(data.at(3)) * -1));
+            (data.size()< 2)? optional<double>{}    :    ((data.at(0) != "k" && data.at(0) != "t") ? stod(data.at(0))      : optional<double>{}),
+            (data.size()< 2)? stod(data.at(0)) * -1 :    ((data.at(1) != "k" && data.at(1) != "t") ? stod(data.at(1)) * -1 : optional<double>{}),
+            (data.size()< 3)? optional<double>{}    :    ((data.at(2) != "k" && data.at(2) != "t") ? stod(data.at(2))      : optional<double>{}),
+            (data.size()< 4)? optional<double>{}    :    ((data.at(3) != "k" && data.at(3) != "t") ? stod(data.at(3)) * -1 : optional<double>{})
+        );
     }};
 
     parse_time = time;

@@ -7,7 +7,7 @@ MAKE_EXEC=$(find . -name Makefile -printf '%d\t%p\n' \
 
 # If somo command fails, the next commands will not be executed
 cd $MAKE_EXEC && make && cd $CURRENT_DIR
-sleep 3;
+sleep 1;
 
 PLAYER_EXEC=$(find . -name player -type f)
 
@@ -15,9 +15,9 @@ PLAYER_EXEC=$(find . -name player -type f)
 COMAND="\"$PLAYER_EXEC\" \"--team-name=$1\""
 for i in {0..9}
 do
-  gnome-terminal -- bash -c "$COMAND --port=555$i" &
+  gnome-terminal -- bash -c "$COMAND --port=$2$i > ${MAKE_EXEC}player$1$i.txt" &
   sleep 1
 done
 
 # Goalkeeper Player
-gnome-terminal -- bash -c "$COMAND --port=55560 --is-goalie=true" &
+gnome-terminal -- bash -c "$COMAND --port=$(($2 + 1))0 --is-goalie=true > ${MAKE_EXEC}player${1}10.txt" &
